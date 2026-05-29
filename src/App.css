@@ -424,6 +424,54 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
 
   .cat-add-row { flex-direction: column !important; gap: 8px !important; }
   .cat-add-row button { width: 100% !important; }
+
+  /* Admin Table to Card Transformation */
+  .table-responsive { overflow-x: visible !important; }
+  .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr { 
+    display: block !important; 
+    width: 100% !important;
+  }
+  .admin-table thead { display: none !important; }
+  .admin-table tbody tr {
+    margin-bottom: 2rem !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    padding: 1.2rem !important;
+    box-shadow: var(--glass-shadow) !important;
+  }
+  body.dark-mode .admin-table tbody tr { background: rgba(0, 0, 0, 0.2) !important; }
+  
+  .admin-table td {
+    text-align: left !important;
+    padding: 0.8rem 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 5px !important;
+    position: relative !important;
+  }
+  body.dark-mode .admin-table td { border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; }
+  .admin-table td:last-child { border-bottom: none !important; margin-top: 0.5rem !important; }
+
+  /* Specifically style labels if needed, or just let content flow */
+  .admin-table td strong { color: var(--teal-main); font-size: 1rem; }
+  body.dark-mode .admin-table td strong { color: var(--gold-main); }
+  
+  .table-img { width: 100% !important; max-width: 120px !important; height: auto !important; border-radius: 12px !important; margin-bottom: 0.5rem !important; }
+  
+  .admin-table .btn-text {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 10px !important;
+    margin-top: 5px !important;
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-radius: 8px !important;
+  }
+  body.dark-mode .admin-table .btn-text { background: rgba(255, 255, 255, 0.05) !important; }
+  
+  .category-dropdown { width: 100% !important; height: 40px !important; }
 }
 
 /* --- ANIMATIONS & UTILITY --- */
