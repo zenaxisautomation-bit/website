@@ -55,6 +55,12 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
     setIsMobileMenuOpen(false); 
   };
 
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    localStorage.removeItem('zen_user_v15');
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="navbar">
       <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
@@ -79,7 +85,7 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
           {!loggedInUser ? 'Log In' : (loggedInUser.role === 'admin' ? 'Admin Panel' : 'My Account')}
         </button>
         {loggedInUser && view === 'admin' && (
-          <button onClick={() => { setLoggedInUser(null); setIsMobileMenuOpen(false); }} style={{color: '#ff4757'}}>Logout</button>
+          <button onClick={handleLogout} style={{color: '#ff4757'}}>Logout</button>
         )}
         <button className="theme-toggle-icon" onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} title="Toggle Theme">
           {isDarkMode ? (
@@ -92,6 +98,7 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
     </header>
   );
 };
+
 
 // 3. Hero & Product Cards
 const HeroSlider = ({ products, addToCart }) => {
