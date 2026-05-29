@@ -389,6 +389,41 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
   .payment-options { flex-direction: column !important; gap: 8px !important; }
   .pay-card { padding: 12px !important; font-size: 0.85rem !important; }
   .payment-instructions { padding: 1rem !important; font-size: 0.9rem !important; }
+
+  /* Admin Dashboard Mobile Optimization */
+  .admin-header { 
+    flex-direction: column !important; 
+    align-items: flex-start !important; 
+    padding: 1rem !important;
+    gap: 12px !important;
+  }
+  .admin-user-info { width: 100% !important; }
+  .admin-section-title { font-size: 1.4rem !important; }
+  .admin-nav-tabs { 
+    width: calc(100% + 2rem) !important; 
+    margin-left: -1rem !important; 
+    padding: 0 1rem 5px 1rem !important;
+  }
+  .admin-nav-tabs button { padding: 8px 12px !important; font-size: 0.85rem !important; }
+
+  .admin-editor { 
+    padding: 1.5rem 1rem !important; 
+    border-radius: 0 !important; 
+    border-left: none !important; 
+    border-right: none !important;
+  }
+  .editor-grid { 
+    grid-template-columns: 1fr !important; 
+    gap: 2rem !important; 
+  }
+  .admin-image-preview-grid { 
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important; 
+    gap: 8px !important;
+  }
+  .admin-img-wrap { border-radius: 6px !important; }
+
+  .cat-add-row { flex-direction: column !important; gap: 8px !important; }
+  .cat-add-row button { width: 100% !important; }
 }
 
 /* --- ANIMATIONS & UTILITY --- */
