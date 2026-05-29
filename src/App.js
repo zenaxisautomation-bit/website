@@ -806,7 +806,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => JSON.parse(localStorage.getItem('zen_darkmode')) || false);
   const [view, setView] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState(null); 
-  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(() => JSON.parse(localStorage.getItem('zen_user_v15')) || null);
   const [popupMsg, setPopupMsg] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -855,6 +855,7 @@ export default function App() {
   }, [loading]);
 
   useEffect(() => localStorage.setItem('zen_cart_v15', JSON.stringify(cart)), [cart]);
+  useEffect(() => localStorage.setItem('zen_user_v15', JSON.stringify(loggedInUser)), [loggedInUser]);
   
   useEffect(() => {
     localStorage.setItem('zen_darkmode', JSON.stringify(isDarkMode));
