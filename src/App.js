@@ -57,13 +57,6 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
       </button>
 
       <nav className={isMobileMenuOpen ? "nav-links open" : "nav-links"}>
-        <button className="theme-toggle-icon" onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} title="Toggle Theme">
-          {isDarkMode ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          )}
-        </button>
         <button className={view === 'home' || view === 'product' ? 'active' : ''} onClick={() => handleNavClick('home')}>Home</button>
         <button className={view === 'services' ? 'active' : ''} onClick={() => handleNavClick('services')}>Services</button>
         <button className={view === 'cart' || view === 'checkout' ? 'active' : ''} onClick={() => handleNavClick('cart')}>
@@ -75,6 +68,13 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
         {loggedInUser && view === 'admin' && (
           <button onClick={() => { setLoggedInUser(null); setIsMobileMenuOpen(false); }} style={{color: '#ff4757'}}>Logout</button>
         )}
+        <button className="theme-toggle-icon" onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} title="Toggle Theme">
+          {isDarkMode ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          )}
+        </button>
       </nav>
     </header>
   );
@@ -158,7 +158,7 @@ const ProductDetails = ({ product, setView, addToCart }) => {
           <div className="details-specs-list"><h4>Quick Specifications:</h4><ul>{renderQuickSpecs()}</ul></div>
           <div className="details-actions">
             <button className="btn-gradient btn-large" onClick={() => addToCart(product)}>Add to Cart</button>
-            <p className="stock-status">🟢 In Stock & Ready to Ship</p>
+            <p className="stock-status">✅ In Stock & Ready to Ship</p>
           </div>
         </div>
       </div>
@@ -372,36 +372,43 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
   };
 
   return (
-    <div className={`admin-login fade-in glass-panel ${!isLoginView ? 'register-box' : ''}`}>
-      <h2>{isLoginView ? 'System Login' : 'Create New Account'}</h2>
-      <p className="sub-text">{isLoginView ? 'Access your dashboard or customer account' : 'Register for faster checkouts'}</p>
-      {isLoginView ? (
+    <div className="auth-page-wrapper fade-in">
+      <div className={`admin-login glass-panel ${!isLoginView ? 'register-box' : ''}`}>
+        <h2 style={{ textTransform: 'uppercase', letterSpacing: '2px', marginTop: '0.5rem' }}>{isLoginView ? 'System Access' : 'Create Account'}</h2>
+        <p className="sub-text">{isLoginView ? 'Secure encrypted portal for ZenAxis Store' : 'Join our industrial automation community'}</p>
+        {isLoginView ? (
         <form onSubmit={handleLogin} className="form-col">
-          <input type="email" placeholder="Email Address" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required />
-          <button type="submit" className="btn-gradient" style={{width: '100%'}}>Secure Login</button>
+          <label>Email Address</label>
+          <input type="email" placeholder="Enter your email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
+          <label>Access Password</label>
+          <input type="password" placeholder="Enter your password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required />
+          <button type="submit" className="btn-gradient" style={{width: '100%'}}>Authorize Access</button>
         </form>
       ) : (
         <form onSubmit={handleRegister} className="form-col">
           <div className="row">
-            <input className="col" type="text" placeholder="First Name" value={regData.firstName} onChange={e => setRegData({...regData, firstName: e.target.value})} required />
-            <input className="col" type="text" placeholder="Last Name" value={regData.lastName} onChange={e => setRegData({...regData, lastName: e.target.value})} required />
+            <div className="col"><label>First Name</label><input type="text" placeholder="e.g. John" value={regData.firstName} onChange={e => setRegData({...regData, firstName: e.target.value})} required /></div>
+            <div className="col"><label>Last Name</label><input type="text" placeholder="e.g. Doe" value={regData.lastName} onChange={e => setRegData({...regData, lastName: e.target.value})} required /></div>
           </div>
-          <input type="email" placeholder="Email Address" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} required />
-          <input type="tel" placeholder="Phone Number" value={regData.phone} onChange={e => setRegData({...regData, phone: e.target.value})} required />
-          <textarea rows="2" placeholder="Full Delivery Address" value={regData.address} onChange={e => setRegData({...regData, address: e.target.value})} required />
+          <label>Email Address</label>
+          <input type="email" placeholder="john@example.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} required />
+          <label>Phone Number</label>
+          <input type="tel" placeholder="01XXX-XXXXXX" value={regData.phone} onChange={e => setRegData({...regData, phone: e.target.value})} required />
+          <label>Delivery Address</label>
+          <textarea rows="2" placeholder="Full shipping address" value={regData.address} onChange={e => setRegData({...regData, address: e.target.value})} required />
           <div className="row">
-            <input className="col" type="password" placeholder="Password" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} required />
-            <input className="col" type="password" placeholder="Re-type Password" value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})} required />
+            <div className="col"><label>Password</label><input type="password" placeholder="Min 6 chars" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} required /></div>
+            <div className="col"><label>Confirm</label><input type="password" placeholder="Re-type" value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})} required /></div>
           </div>
-          <button type="submit" className="btn-gradient" style={{width: '100%', marginTop: '10px'}}>Register Account</button>
+          <button type="submit" className="btn-gradient" style={{width: '100%', marginTop: '10px'}}>Complete Registration</button>
         </form>
       )}
-      <div style={{marginTop: '1.5rem', fontSize: '0.9rem'}}>
+      <div style={{marginTop: '2rem', fontSize: '0.9rem', color: '#888'}}>
         {isLoginView ? "Don't have an account? " : "Already have an account? "}
-        <button className="btn-text edit" onClick={() => setIsLoginView(!isLoginView)}>{isLoginView ? 'Create one here' : 'Log in here'}</button>
+        <button className="btn-text edit" style={{ color: 'var(--gold-main)' }} onClick={() => setIsLoginView(!isLoginView)}>{isLoginView ? 'Initialize Setup' : 'Login Now'}</button>
       </div>
     </div>
+  </div>
   );
 };
 
@@ -422,9 +429,12 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
   return (
     <div className="admin-dashboard fade-in">
       <div className="admin-header glass-panel" style={{padding: '1.5rem', marginBottom: '2rem'}}>
-        <div>
+        <div className="admin-user-info">
           <h2 className="admin-section-title" style={{margin: 0}}>My Account</h2>
-          <p style={{color: 'var(--teal-main)', fontWeight: 'bold', margin: '5px 0 0 0'}}>Welcome back, {loggedInUser.firstName}!</p>
+          <div className="user-details">
+            <span className="user-name">Welcome back, {loggedInUser.firstName} {loggedInUser.lastName}</span>
+            <span className="user-email">{loggedInUser.email}</span>
+          </div>
         </div>
         <div className="admin-nav-tabs">
           <button className={activeTab === 'orders' ? 'tab-active' : ''} onClick={() => setActiveTab('orders')}>My Orders</button>
@@ -563,9 +573,12 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
   return (
     <div className="admin-dashboard fade-in">
       <div className="admin-header glass-panel" style={{padding: '1.5rem', marginBottom: '2rem'}}>
-        <div>
+        <div className="admin-user-info">
           <h2 className="admin-section-title" style={{margin: 0}}>Master Dashboard</h2>
-          <p style={{color: 'var(--teal-main)', fontWeight: 'bold', margin: '5px 0 0 0'}}>Welcome, {loggedInUser.firstName}!</p>
+          <div className="user-details">
+            <span className="user-name">Welcome, {loggedInUser.firstName} {loggedInUser.lastName}</span>
+            <span className="user-email">{loggedInUser.email}</span>
+          </div>
         </div>
         <div className="admin-nav-tabs">
           <button className={activeTab === 'orders' ? 'tab-active' : ''} onClick={() => setActiveTab('orders')}>Orders</button>
@@ -627,18 +640,35 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
       )}
 
       {activeTab === 'categories' && (
-        <div className="admin-category-manager glass-panel fade-in">
-          <h3 className="admin-section-title" style={{marginTop: 0}}>Manage Categories</h3>
-          <p className="sub-text" style={{marginBottom: '1rem'}}>Add or remove sidebar categories.</p>
-          <div className="cat-add-row form-col">
-            <input type="text" placeholder="Type new category name..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} />
-            <button className="btn-gradient" onClick={handleAddCategory}>Add Category</button>
+        <div className="glass-panel table-responsive fade-in">
+          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+            <h3 className="admin-section-title" style={{ margin: 0 }}>System Categories</h3>
+            <p className="sub-text" style={{ marginBottom: '1.5rem' }}>Manage high-level navigation categories for the storefront.</p>
+            <div className="cat-add-row" style={{ display: 'flex', gap: '10px' }}>
+              <input type="text" placeholder="Industrial Category Name..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} style={{ flexGrow: 1, marginBottom: 0 }} />
+              <button className="btn-gradient" onClick={handleAddCategory} style={{ padding: '0 25px', height: '44px' }}>Add Category</button>
+            </div>
           </div>
-          <div className="cat-badges">
-            {categories.map(c => (
-              <span key={c} className="category-tag cat-badge-edit">{c} <button onClick={() => handleRemoveCategory(c)} title="Delete Category">×</button></span>
-            ))}
-          </div>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Category Name</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map(c => (
+                <tr key={c}>
+                  <td><strong>{c}</strong></td>
+                  <td><span className="category-tag" style={{ background: 'rgba(14, 94, 96, 0.1)', color: 'var(--teal-main)' }}>Active</span></td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="btn-text delete" onClick={() => handleRemoveCategory(c)} style={{ color: '#ff4757' }}>Remove System Entry</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
