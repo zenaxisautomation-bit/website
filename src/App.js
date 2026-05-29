@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // Make sure your image file is exactly named "ZenAxis Logo.png" inside the "src" folder!
-import zaLogo from './ZenAxis Logo.png'; 
+import zaLogo from './ZenAxisLogo.png'; 
 
 // 1. Initial Mock Data
 const initialCategories = ["Components", "Peripherals", "Monitors", "Accessories"];
