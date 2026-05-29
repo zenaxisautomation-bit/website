@@ -218,23 +218,35 @@ body.dark-mode .price, body.dark-mode .details-price { color: var(--gold-light);
 .old-price { text-decoration: line-through; color: #999; font-size: 1rem; }
 
 .product-card .btn-outline {
-  background: transparent; color: var(--teal-main); border: 2px solid var(--teal-main);
-  padding: 12px; border-radius: 8px; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease; width: 100%;
+  background: transparent; color: var(--gold-main); border: 1px solid var(--gold-main);
+  padding: 12px; border-radius: 4px; font-size: 0.9rem; font-weight: 800; transition: all 0.3s ease; width: 100%;
+  text-transform: uppercase; letter-spacing: 1px;
 }
-.product-card .btn-outline:hover { background: var(--teal-main); color: white; }
+.product-card .btn-outline:hover { background: var(--gold-main); color: #000; }
 body.dark-mode .product-card .btn-outline { border-color: var(--gold-light); color: var(--gold-light); }
-body.dark-mode .product-card .btn-outline:hover { background: rgba(235, 210, 135, 0.1); color: var(--gold-main); }
+body.dark-mode .product-card .btn-outline:hover { background: rgba(200, 155, 60, 0.1); color: var(--gold-main); }
 
 /* --- OTHER BUTTONS --- */
-button { font-family: inherit; cursor: pointer; border-radius: 8px; font-weight: 600; transition: 0.3s ease; }
-.btn-gradient { background: linear-gradient(135deg, var(--gold-main) 0%, #a87e2b 100%); color: #000; border: none; padding: 12px 20px; box-shadow: 0 4px 10px rgba(200, 155, 60, 0.3); }
-.btn-gradient:hover { background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-main) 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(200, 155, 60, 0.4);}
-.btn-large { padding: 15px 30px; font-size: 1.2rem; width: 100%; margin-top: 1rem;}
-.btn-outline { background: rgba(255,255,255,0.7); color: var(--teal-main); border: 2px solid var(--teal-main); padding: 10px; width: 100%; backdrop-filter: blur(4px);}
-.btn-outline:hover { background: var(--teal-main); color: white; }
-.btn-back { background: transparent; border: none; color: var(--teal-main); font-size: 1.1rem; padding: 0; margin-bottom: 2rem; display: inline-flex; align-items: center;}
+button { font-family: inherit; cursor: pointer; border-radius: 4px; font-weight: 800; transition: 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+
+.btn-gradient { 
+  background: var(--gold-main); color: #000; border: 1px solid var(--gold-light); 
+  padding: 12px 24px; box-shadow: 0 4px 0 #a87e2b;
+}
+.btn-gradient:hover { 
+  background: var(--gold-light); transform: translateY(2px); box-shadow: 0 2px 0 #a87e2b;
+}
+.btn-large { padding: 16px 32px; font-size: 1.1rem; width: 100%; margin-top: 1rem;}
+
+.btn-outline { 
+  background: transparent; color: var(--gold-light); border: 1px solid var(--gold-main); 
+  padding: 10px 20px; width: 100%;
+}
+.btn-outline:hover { 
+  background: rgba(200, 155, 60, 0.1); color: var(--gold-main); box-shadow: 0 0 15px rgba(200, 155, 60, 0.2);
+}
+.btn-back { background: transparent; border: none; color: var(--gold-light); font-size: 0.9rem; padding: 0; margin-bottom: 2rem; display: inline-flex; align-items: center;}
 .btn-back:hover { color: var(--gold-main); transform: translateX(-5px);}
-body.dark-mode .btn-back { color: var(--gold-light); }
 
 /* --- PRODUCT DETAILS & MULTI-IMAGE GALLERY --- */
 .product-details-page { background: transparent; }
