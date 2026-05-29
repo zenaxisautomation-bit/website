@@ -443,16 +443,18 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
     background: none !important;
     border: none !important;
     box-shadow: none !important;
+    margin: 0 !important;
   }
   .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr { 
     display: block !important; 
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important; /* Force reset from desktop 750px */
     box-sizing: border-box !important;
   }
   .admin-table thead { display: none !important; }
   .admin-table tbody tr {
-    margin: 0 auto 1.2rem auto !important;
+    margin: 0 0 1.2rem 0 !important;
     background: var(--card-bg) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: 12px !important;
@@ -461,7 +463,7 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
     width: 100% !important;
     box-sizing: border-box !important;
   }
-  
+
   .admin-table td {
     text-align: left !important;
     padding: 0.5rem 0 !important;
@@ -473,8 +475,10 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
     word-break: break-all !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
   }
   body.dark-mode .admin-table td { border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; }
+
   .admin-table td:last-child { 
     border-bottom: none !important; 
     margin-top: 0.8rem !important; 
@@ -483,10 +487,10 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
     gap: 8px !important;
   }
 
-  .admin-table td strong { font-size: 0.9rem !important; }
-  
+  .admin-table td strong { font-size: 0.9rem !important; white-space: normal !important; }
+
   .table-img { width: 60px !important; height: 60px !important; border-radius: 8px !important; }
-  
+
   .admin-table .btn-text {
     width: auto !important;
     min-width: 80px !important;
@@ -497,12 +501,12 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
     font-size: 0.75rem !important;
   }
   body.dark-mode .admin-table .btn-text { background: rgba(255, 255, 255, 0.08) !important; }
-  
+
   .action-buttons { display: flex !important; gap: 8px !important; width: 100% !important; }
   .action-buttons button { flex: 1 !important; padding: 10px !important; font-size: 0.8rem !important; }
 
   .category-dropdown { width: 100% !important; height: 36px !important; font-size: 0.85rem !important; }
-}
+  }
 
 /* --- ANIMATIONS & UTILITY --- */
 .fade-in { animation: fadeIn 0.4s ease-in-out; }
