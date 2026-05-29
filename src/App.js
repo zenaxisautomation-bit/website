@@ -18,7 +18,7 @@ import {
 import zaLogo from './ZenAxisLogo.png'; 
 
 const defaultAdminUser = {
-  id: 1, firstName: 'System', lastName: 'Admin', email: 'admin@gmail.com', phone: '01830976800', 
+  id: 1, firstName: 'System', lastName: 'Admin', email: 'zenaxisautomation@gmail.com', phone: '01830976800', 
   address: 'ZenAxis HQ, Dhaka', password: 'admin123', role: 'admin'
 };
 
@@ -837,13 +837,14 @@ export default function App() {
 
   // INITIAL DATA SEEDING (Run once if empty)
   useEffect(() => {
+    if (!loading) {
+      // Force update default admin to ensure the new email is active in Firestore
+      setDoc(doc(db, "users", "admin-default"), defaultAdminUser);
+    }
     if (!loading && categories.length === 0) {
       initialCategories.forEach(async (cat) => {
         await addDoc(collection(db, "categories"), { name: cat });
       });
-    }
-    if (!loading && users.length === 0) {
-      setDoc(doc(db, "users", "admin-default"), defaultAdminUser);
     }
     if (!loading && products.length === 0) {
       initialProducts.forEach(async (p) => {
