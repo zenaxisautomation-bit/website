@@ -672,11 +672,11 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
               <tbody>
                 {[...orders].reverse().map(order => (
                   <tr key={order.id}>
-                    <td><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
-                    <td><strong>{order.customer.name}</strong><br/>{order.customer.phone}<br/><span style={{fontSize:'0.8rem'}}>{order.customer.address}</span></td>
-                    <td>{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
-                    <td><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span><br/><span style={{fontSize:'0.8rem'}}>Trx: {order.customer.trxId}</span></td>
-                    <td>
+                    <td data-label="Order ID / Date"><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
+                    <td data-label="Customer Info"><strong>{order.customer.name}</strong><br/>{order.customer.phone}<br/><span style={{fontSize:'0.8rem'}}>{order.customer.address}</span></td>
+                    <td data-label="Items">{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
+                    <td data-label="Total / Payment"><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span><br/><span style={{fontSize:'0.8rem'}}>Trx: {order.customer.trxId}</span></td>
+                    <td data-label="Status">
                       <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} className="category-dropdown" style={{padding: '5px', marginBottom: 0, width: 'auto'}}>
                         <option value="Pending">🟡 Pending</option>
                         <option value="Shipped">🔵 Shipped</option>
