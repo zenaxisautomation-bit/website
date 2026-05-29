@@ -14,7 +14,7 @@ import {
   where
 } from "firebase/firestore";
 
-// Make sure your image file is exactly named "ZenAxis Logo.png" inside the "src" folder!
+// Make sure your image file is exactly named "ZenAxisLogo.png" inside the "src" folder!
 import zaLogo from './ZenAxisLogo.png'; 
 
 const defaultAdminUser = {
@@ -28,7 +28,7 @@ const initialCategories = ["Components", "Peripherals", "Monitors", "Accessories
 
 const initialProducts = [
   { 
-    id: 1, name: "ZenAxis Quantum CPU", category: "Components", price: 55000, originalPrice: 65000, description: "Next-gen processing power.", isHotDeal: true, isFeatured: true,
+    id: 1, name: "ZenAxis Quantum CPU", category: "Components", price: 55000, originalPrice: 65000, description: "Next-gen processing power.", isHotDeal: true, isFeatured: true, stock: 15,
     images: ["https://via.placeholder.com/800x800/0E5E60/ffffff?text=Quantum+CPU", "https://via.placeholder.com/800x800/168285/ffffff?text=CPU+Angle+2", "https://via.placeholder.com/800x800/073839/ffffff?text=CPU+Angle+3"],
     quickSpecs: "High-Precision ZenAxis Engineering\nAerospace-Grade Build Materials\nOptimized for Industrial Automation\n1-Year Comprehensive Warranty",
     longDescription: "Experience the pinnacle of industrial control with the ZenAxis Quantum CPU.\n\nManufactured in top-tier facilities, we ensure that every unit passes rigorous stress tests.",
@@ -36,7 +36,7 @@ const initialProducts = [
     shippingInfo: "Ships within 24 hours from Dhaka Warehouse.\nStandard Delivery: 3-5 Business Days."
   },
   { 
-    id: 2, name: "Neon Flux Keyboard", category: "Peripherals", price: 14500, originalPrice: 16500, description: "Mechanical keys with RGB sync.", isHotDeal: false, isFeatured: true,
+    id: 2, name: "Neon Flux Keyboard", category: "Peripherals", price: 14500, originalPrice: 16500, description: "Mechanical keys with RGB sync.", isHotDeal: false, isFeatured: true, stock: 42,
     images: ["https://via.placeholder.com/800x800/0E5E60/ffffff?text=Neon+Keyboard", "https://via.placeholder.com/800x800/C89B3C/ffffff?text=Keyboard+Glow"],
     quickSpecs: "Tactile Mechanical Switches\nFull RGB Backlighting\nAircraft-Grade Aluminum Frame",
     longDescription: "The Neon Flux Keyboard is built for operators who need tactile feedback and extreme durability.",
@@ -47,11 +47,28 @@ const initialProducts = [
 
 
 // 2. Navigation Bar
-const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDarkMode, setIsDarkMode }) => {
+const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, isDarkMode, setIsDarkMode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    if (isMobileMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   const handleNavClick = (newView) => {
-    setView(newView);
+    navigateTo(newView);
     setIsMobileMenuOpen(false); 
   };
 
@@ -62,7 +79,7 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
   };
 
   return (
-    <header className="navbar">
+    <header className="navbar" ref={navRef}>
       <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
         <img src={zaLogo} alt="ZenAxis Automation" className="nav-logo-img" />
       </div>
@@ -101,7 +118,7 @@ const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDar
 
 
 // 3. Hero & Product Cards
-const HeroSlider = ({ products, addToCart }) => {
+const HeroSlider = ({ products, addToCart, onViewDetails }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const sliderProducts = products.filter(p => p.isFeatured).slice(0, 5); 
   useEffect(() => {
@@ -111,13 +128,13 @@ const HeroSlider = ({ products, addToCart }) => {
   if (sliderProducts.length === 0) return null;
   const product = sliderProducts[currentSlide];
   return (
-    <div className="hero-slider">
+    <div className="hero-slider" onClick={() => onViewDetails(product)} style={{cursor: 'pointer'}}>
       <div className="hero-content">
         <span className="featured-badge">Featured Product</span>
         <h2>{product.name}</h2>
         <p>{product.description}</p>
         <div className="hero-price">{formatBDT(product.price)}</div>
-        <button className="btn-gradient" onClick={() => addToCart(product)}>Add to Cart</button>
+        <button className="btn-gradient" onClick={(e) => { e.stopPropagation(); addToCart(product); }}>Add to Cart</button>
       </div>
       <div className="hero-image"><img src={product.images?.[0]} alt={product.name} /></div>
     </div>
@@ -127,22 +144,34 @@ const HeroSlider = ({ products, addToCart }) => {
 const ProductCard = ({ product, addToCart, onViewDetails }) => (
   <div className="product-card" onClick={() => onViewDetails(product)}>
     {product.isHotDeal && <div className="hot-badge">🔥 HOT DEAL</div>}
+    {(!product.stock || product.stock <= 0) && <div className="hot-badge" style={{background: '#555', right: 'auto', left: '15px'}}>SOLD OUT</div>}
     <img src={product.images?.[0]} alt={product.name} />
     <div className="card-info">
-      <span className="category-tag">{product.category || 'General'}</span>
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: '0.4rem'}}>
+        <span className="category-tag">{product.category || 'General'}</span>
+        <span className="stock-pill" style={{background: (product.stock || 0) < 5 ? 'rgba(255, 71, 87, 0.1)' : 'rgba(46, 204, 113, 0.1)', color: (product.stock || 0) < 5 ? '#ff4757' : '#2ecc71'}}>
+          {(product.stock || 0) > 0 ? `IN STOCK: ${product.stock}` : 'OUT OF STOCK'}
+        </span>
+      </div>
       <h3>{product.name}</h3>
       <p className="description">{product.description}</p>
       <div className="price-row">
         <span className="price">{formatBDT(product.price)}</span>
         {product.originalPrice && <span className="old-price">{formatBDT(product.originalPrice)}</span>}
       </div>
-      <button className="btn-outline" onClick={(e) => { e.stopPropagation(); addToCart(product); }}>+ Add to Cart</button>
+      <button 
+        className="btn-outline" 
+        disabled={!product.stock || product.stock <= 0}
+        onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+      >
+        {(product.stock || 0) > 0 ? '+ Add to Cart' : 'Sold Out'}
+      </button>
     </div>
   </div>
 );
 
 // 4. Product Details
-const ProductDetails = ({ product, setView, addToCart }) => {
+const ProductDetails = ({ product, navigateTo, addToCart }) => {
   const [activeTab, setActiveTab] = useState('overview'); 
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
 
@@ -152,13 +181,16 @@ const ProductDetails = ({ product, setView, addToCart }) => {
     return product.quickSpecs.split('\n').map((spec, index) => spec.trim() ? <li key={index}>✓ {spec}</li> : null);
   };
   
+  const isOutOfStock = !product.stock || product.stock <= 0;
+
   return (
     <div className="product-details-page fade-in">
-      <button className="btn-back" onClick={() => setView('home')}>← Back to Shop</button>
+      <button className="btn-back" onClick={() => navigateTo('home')}>← Back to Shop</button>
       <div className="details-layout-top">
         <div className="details-image-container">
           <img src={product.images?.[selectedImageIdx]} alt={product.name} className="details-main-img" />
           {product.isHotDeal && <div className="details-hot-badge">🔥 Limited Time Offer</div>}
+          {isOutOfStock && <div className="details-hot-badge" style={{background: '#555', top: '50px'}}>⚠️ Temporarily Out of Stock</div>}
           {product.images?.length > 1 && (
             <div className="thumbnail-gallery">
               {product.images.map((img, idx) => (
@@ -177,8 +209,16 @@ const ProductDetails = ({ product, setView, addToCart }) => {
           </div>
           <div className="details-specs-list"><h4>Quick Specifications:</h4><ul>{renderQuickSpecs()}</ul></div>
           <div className="details-actions">
-            <button className="btn-gradient btn-large" onClick={() => addToCart(product)}>Add to Cart</button>
-            <p className="stock-status">✅ In Stock & Ready to Ship</p>
+            <button 
+              className="btn-gradient btn-large" 
+              disabled={isOutOfStock}
+              onClick={() => addToCart(product)}
+            >
+              {isOutOfStock ? 'Currently Unavailable' : 'Add to Cart'}
+            </button>
+            <p className="stock-status" style={{color: isOutOfStock ? '#ff4757' : (product.stock < 5 ? '#e67e22' : '#2ecc71')}}>
+              {isOutOfStock ? '❌ Out of Stock' : (product.stock < 10 ? `⚠️ Low Stock: Only ${product.stock} units left!` : `✅ In Stock: ${product.stock} units available`)}
+            </p>
           </div>
         </div>
       </div>
@@ -216,7 +256,7 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
           </div>
         </aside>
         <div className="shop-content">
-          <HeroSlider products={products} addToCart={addToCart} />
+          <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />
           {hotDeals.length > 0 && selectedCategory === 'All' && (
             <section className="section">
               <h2 className="section-title"><span>🔥 Hot</span> Deals</h2>
@@ -279,12 +319,12 @@ const Services = () => {
 };
 
 // 6. Cart View
-const Cart = ({ cart, removeFromCart, updateQuantity, setView }) => {
+const Cart = ({ cart, removeFromCart, updateQuantity, navigateTo }) => {
   const total = cart.reduce((sum, item) => sum + ((item?.price || 0) * (item?.quantity || 1)), 0);
   if (!cart || cart.length === 0) return (
     <div className="empty-state fade-in glass-panel">
       <h2>Your Cart is Empty</h2>
-      <button className="btn-gradient" onClick={() => setView('home')} style={{marginTop: '1rem'}}>Go to Shop</button>
+      <button className="btn-gradient" onClick={() => navigateTo('home')} style={{marginTop: '1rem'}}>Go to Shop</button>
     </div>
   );
   return (
@@ -310,14 +350,14 @@ const Cart = ({ cart, removeFromCart, updateQuantity, setView }) => {
       </div>
       <div className="cart-summary">
         <h3>Total: <span className="gradient-text">{formatBDT(total)}</span></h3>
-        <button className="btn-gradient checkout-btn" onClick={() => setView('checkout')}>Proceed to Secure Checkout</button>
+        <button className="btn-gradient checkout-btn" onClick={() => navigateTo('checkout')}>Proceed to Secure Checkout</button>
       </div>
     </div>
   );
 };
 
 // 7. Checkout System
-const Checkout = ({ cart, setView, placeOrder, loggedInUser, showPopup }) => {
+const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => {
   const [formData, setFormData] = useState({ 
     name: loggedInUser ? `${loggedInUser.firstName} ${loggedInUser.lastName}` : '', phone: loggedInUser ? loggedInUser.phone : '', address: loggedInUser ? loggedInUser.address : '', paymentMethod: 'bKash', trxId: '' 
   });
@@ -331,7 +371,7 @@ const Checkout = ({ cart, setView, placeOrder, loggedInUser, showPopup }) => {
 
   return (
     <div className="checkout-container fade-in glass-panel">
-      <button className="btn-back" onClick={() => setView('cart')}>← Back to Cart</button>
+      <button className="btn-back" onClick={() => navigateTo('cart')}>← Back to Cart</button>
       <h2 className="admin-section-title">Secure Checkout</h2>
       <div className="checkout-layout">
         <form onSubmit={handleSubmit} className="checkout-form">
@@ -486,10 +526,10 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
               <tbody>
                 {[...myOrders].reverse().map(order => (
                   <tr key={order.id}>
-                    <td><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
-                    <td>{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
-                    <td><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span></td>
-                    <td><strong>{order.status}</strong></td>
+                    <td data-label="Order ID / Date"><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
+                    <td data-label="Items">{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
+                    <td data-label="Total / Payment"><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span></td>
+                    <td data-label="Status"><strong>{order.status}</strong></td>
                   </tr>
                 ))}
               </tbody>
@@ -521,7 +561,7 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
 
   const handleAddNew = () => {
     const defaultCat = categories.length > 0 ? categories[0] : "General";
-    setEditingProduct({ id: Date.now(), name: '', category: defaultCat, price: '', description: '', longDescription: '', quickSpecs: '', technicalSpecs: '', shippingInfo: '', isHotDeal: false, isFeatured: false, images: [] });
+    setEditingProduct({ id: Date.now(), name: '', category: defaultCat, price: '', originalPrice: '', stock: 0, description: '', longDescription: '', quickSpecs: '', technicalSpecs: '', shippingInfo: '', isHotDeal: false, isFeatured: false, images: [] });
   };
   const handleSave = async () => {
     if (!editingProduct.name || !editingProduct.price) return showPopup("Name and Price are required!");
@@ -529,7 +569,12 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
     
     try {
       const { id, ...pData } = editingProduct;
-      const productToSave = { ...pData, price: Number(pData.price), originalPrice: pData.originalPrice ? Number(pData.originalPrice) : null };
+      const productToSave = { 
+        ...pData, 
+        price: Number(pData.price), 
+        originalPrice: pData.originalPrice ? Number(pData.originalPrice) : null,
+        stock: Number(pData.stock) || 0
+      };
       
       if (products.find(p => p.id === id)) {
         await updateDoc(doc(db, "products", id), productToSave);
@@ -607,8 +652,11 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
     return (
       <div className="admin-editor fade-in glass-panel">
         <h2 className="admin-section-title">{products.find(p => p.id === editingProduct.id) ? 'Edit Product Details' : 'Add New Product'}</h2>
+        
         <div className="editor-grid">
-          <div className="image-col">
+          {/* Section 1: Media Card */}
+          <div className="form-card">
+            <h3 className="form-card-title">Product Media</h3>
             <div className="admin-image-preview-grid">
               {(editingProduct.images || []).map((img, idx) => (
                 <div key={idx} className="admin-img-wrap">
@@ -620,25 +668,66 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
             <label className="btn-outline" style={{display: 'block', textAlign: 'center', marginTop: '1rem', cursor: 'pointer'}}>
               Upload Product Images (Max 10) <input type="file" multiple accept="image/*" onChange={handleMultipleImages} hidden />
             </label>
-            <p className="sub-text" style={{textAlign: 'center', fontSize: '0.8rem', marginTop: '10px'}}>You have {editingProduct.images?.length || 0}/10 images.</p>
           </div>
-          <div className="form-col">
-            <div className="row">
-              <div className="col" style={{flex: 2}}><label>Product Name</label><input type="text" value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} /></div>
-              <div className="col" style={{flex: 1}}><label>Category</label><select value={editingProduct.category} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="category-dropdown">{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div>
+
+          <div className="editor-form-content">
+            {/* Section 2: Basic Info Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">General Information</h3>
+              <div className="form-col">
+                <label>Product Name</label>
+                <input type="text" value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} placeholder="e.g. ZenAxis Servo Motor" />
+                <label>Category</label>
+                <select value={editingProduct.category} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="category-dropdown">
+                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="row">
-              <div className="col"><label>Current Price (৳)</label><input type="number" step="1" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || ''})} /></div>
-              <div className="col"><label>Original Price (৳) - Optional</label><input type="number" step="1" value={editingProduct.originalPrice || ''} onChange={e => setEditingProduct({...editingProduct, originalPrice: parseFloat(e.target.value) || null})} /></div>
+
+            {/* Section 3: Pricing & Inventory Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">Pricing & Inventory</h3>
+              <div className="row">
+                <div className="col"><label>Sale Price (৳)</label><input type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: e.target.value})} /></div>
+                <div className="col"><label>Regular Price (৳)</label><input type="number" value={editingProduct.originalPrice || ''} onChange={e => setEditingProduct({...editingProduct, originalPrice: e.target.value})} /></div>
+              </div>
+              <div className="form-col">
+                <label>Stock Available (Units)</label>
+                <input type="number" value={editingProduct.stock || 0} onChange={e => setEditingProduct({...editingProduct, stock: e.target.value})} />
+              </div>
             </div>
-            <label>Short Description (Main Card Text)</label><input type="text" value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} />
-            <label>Quick Specifications</label><textarea rows="4" value={editingProduct.quickSpecs || ''} onChange={e => setEditingProduct({...editingProduct, quickSpecs: e.target.value})} />
-            <label>Overview Tab</label><textarea rows="5" value={editingProduct.longDescription || ''} onChange={e => setEditingProduct({...editingProduct, longDescription: e.target.value})} />
-            <label>Technical Specs Tab</label><textarea rows="4" value={editingProduct.technicalSpecs || ''} onChange={e => setEditingProduct({...editingProduct, technicalSpecs: e.target.value})} />
-            <label>Shipping Info Tab</label><textarea rows="3" value={editingProduct.shippingInfo || ''} onChange={e => setEditingProduct({...editingProduct, shippingInfo: e.target.value})} />
-            <label className="checkbox-label"><input type="checkbox" checked={editingProduct.isHotDeal} onChange={e => setEditingProduct({...editingProduct, isHotDeal: e.target.checked})} /> Mark as "Hot Deal" 🔥</label>
-            <label className="checkbox-label"><input type="checkbox" checked={editingProduct.isFeatured} onChange={e => setEditingProduct({...editingProduct, isFeatured: e.target.checked})} /> Show in Hero Slider (Featured) 🌟</label>
-            <div className="action-buttons"><button className="btn-gradient" onClick={handleSave}>Save Product</button><button className="btn-outline" onClick={() => setEditingProduct(null)}>Cancel</button></div>
+
+            {/* Section 4: Descriptions Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">Descriptions</h3>
+              <label>Brief Description (Card View)</label>
+              <input type="text" value={editingProduct.description} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} />
+              <label>Detailed Overview (Tab View)</label>
+              <textarea rows="4" value={editingProduct.longDescription || ''} onChange={e => setEditingProduct({...editingProduct, longDescription: e.target.value})} />
+            </div>
+
+            {/* Section 5: Technical Details Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">Technical Specifications</h3>
+              <label>Quick Bullet Points (Line by line)</label>
+              <textarea rows="4" value={editingProduct.quickSpecs || ''} onChange={e => setEditingProduct({...editingProduct, quickSpecs: e.target.value})} placeholder="Enter features line by line..." />
+              <label>Full Tech Specs Table</label>
+              <textarea rows="4" value={editingProduct.technicalSpecs || ''} onChange={e => setEditingProduct({...editingProduct, technicalSpecs: e.target.value})} />
+            </div>
+
+            {/* Section 6: Options & Settings Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">Display Settings</h3>
+              <div style={{display:'flex', flexDirection:'column', gap: '1rem', marginTop: '1rem'}}>
+                <label className="checkbox-label"><input type="checkbox" checked={editingProduct.isHotDeal} onChange={e => setEditingProduct({...editingProduct, isHotDeal: e.target.checked})} /> High-Demand "Hot Deal" 🔥</label>
+                <label className="checkbox-label"><input type="checkbox" checked={editingProduct.isFeatured} onChange={e => setEditingProduct({...editingProduct, isFeatured: e.target.checked})} /> Hero Slider "Featured" 🌟</label>
+              </div>
+            </div>
+
+            <div className="action-buttons" style={{marginTop: '2rem'}}>
+              <button className="btn-gradient" onClick={handleSave} style={{flex: 2}}>Update Cloud System</button>
+              <button className="btn-outline" onClick={() => setEditingProduct(null)} style={{flex: 1}}>Discard Changes</button>
+            </div>
           </div>
         </div>
       </div>
@@ -698,15 +787,15 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
             <button className="btn-gradient" onClick={handleAddNew}>+ Add New Product</button>
           </div>
           <table className="admin-table">
-            <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Image</th><th>Name / Category</th><th>Pricing</th><th>Stock</th><th>Actions</th></tr></thead>
             <tbody>
               {products.map(p => (
                 <tr key={p.id}>
-                  <td><img src={p.images?.[0]} alt={p.name} className="table-img" /></td>
-                  <td><strong>{p.name}</strong></td>
-                  <td><span className="category-tag">{p.category || 'General'}</span></td>
-                  <td>{formatBDT(p.price)}</td>
-                  <td><button className="btn-text edit" onClick={() => setEditingProduct(p)}>Edit</button><button className="btn-text delete" onClick={() => handleDelete(p.id)}>Delete</button></td>
+                  <td data-label="Image"><img src={p.images?.[0]} alt={p.name} className="table-img" /></td>
+                  <td data-label="Name / Category"><strong>{p.name}</strong><br/><span className="category-tag" style={{marginTop: '5px'}}>{p.category || 'General'}</span></td>
+                  <td data-label="Pricing"><strong>{formatBDT(p.price)}</strong>{p.originalPrice && <div style={{fontSize:'0.8rem', textDecoration:'line-through', opacity:0.5}}>{formatBDT(p.originalPrice)}</div>}</td>
+                  <td data-label="Stock"><span style={{fontWeight:'700', color: (p.stock || 0) < 5 ? '#ff4757' : 'inherit'}}>{p.stock || 0} Units</span></td>
+                  <td data-label="Actions"><button className="btn-text edit" onClick={() => setEditingProduct(p)}>Edit</button><button className="btn-text delete" onClick={() => handleDelete(p.id)}>Delete</button></td>
                 </tr>
               ))}
             </tbody>
@@ -735,9 +824,9 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
             <tbody>
               {categories.map(c => (
                 <tr key={c}>
-                  <td><strong>{c}</strong></td>
-                  <td><span className="category-tag" style={{ background: 'rgba(14, 94, 96, 0.1)', color: 'var(--teal-main)' }}>Active</span></td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td data-label="Category Name"><strong>{c}</strong></td>
+                  <td data-label="Status"><span className="category-tag" style={{ background: 'rgba(14, 94, 96, 0.1)', color: 'var(--teal-main)' }}>Active</span></td>
+                  <td data-label="Actions" style={{ textAlign: 'right' }}>
                     <button className="btn-text delete" onClick={() => handleRemoveCategory(c)} style={{ color: '#ff4757' }}>Remove System Entry</button>
                   </td>
                 </tr>
@@ -755,11 +844,11 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
             <tbody>
               {users.map(u => (
                 <tr key={u.id}>
-                  <td><span style={{fontSize:'0.8rem', color:'#888'}}>#{u.id}</span></td>
-                  <td><strong>{u.firstName} {u.lastName}</strong></td>
-                  <td>{u.email}</td>
-                  <td>{u.phone}<br/><span style={{fontSize:'0.8rem'}}>{u.address}</span></td>
-                  <td><span className="category-tag" style={u.role==='admin'?{background:'var(--teal-main)',color:'white',borderColor:'transparent'}:{}}>{u.role}</span></td>
+                  <td data-label="ID"><span style={{fontSize:'0.8rem', color:'#888'}}>#{u.id}</span></td>
+                  <td data-label="Name"><strong>{u.firstName} {u.lastName}</strong></td>
+                  <td data-label="Email">{u.email}</td>
+                  <td data-label="Phone & Address">{u.phone}<br/><span style={{fontSize:'0.8rem'}}>{u.address}</span></td>
+                  <td data-label="Role"><span className="category-tag" style={u.role==='admin'?{background:'var(--teal-main)',color:'white',borderColor:'transparent'}:{}}>{u.role}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -818,6 +907,28 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   const showPopup = (msg) => setPopupMsg(msg);
+
+  // --- BROWSER HISTORY SYNC (FIX MOBILE BACK BUTTON) ---
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state && event.state.view) {
+        setView(event.state.view);
+        if (event.state.product) setSelectedProduct(event.state.product);
+      } else {
+        setView('home'); 
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.history.replaceState({ view: 'home' }, '');
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (newView, product = null) => {
+    if (newView === view && (!product || product?.id === selectedProduct?.id)) return;
+    setView(newView);
+    if (product) setSelectedProduct(product);
+    window.history.pushState({ view: newView, product }, '', `#${newView}`);
+  };
 
   // REAL-TIME FIRESTORE SYNC
   useEffect(() => {
@@ -882,7 +993,7 @@ export default function App() {
     if (newQuantity < 1) return removeFromCart(id);
     setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
   };
-  const handleViewDetails = (product) => { setSelectedProduct(product); setView('product'); window.scrollTo(0, 0); };
+  const handleViewDetails = (product) => { navigateTo('product', product); window.scrollTo(0, 0); };
 
   const placeOrder = async (customerDetails, totalAmount) => {
     const newOrder = {
@@ -898,7 +1009,7 @@ export default function App() {
       const docRef = await addDoc(collection(db, "orders"), newOrder);
       setCart([]);
       showPopup(`Order Placed Successfully! Your Order ID is #${docRef.id.substring(0,6).toUpperCase()}`);
-      setView('home');
+      navigateTo('home');
     } catch (e) {
       showPopup("Order Error: " + e.message);
     }
@@ -912,13 +1023,13 @@ export default function App() {
 
   return (
     <div className="App">
-      <Navbar view={view} setView={setView} cartCount={cart.reduce((a, b) => a + (b.quantity || 1), 0)} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      <Navbar view={view} navigateTo={navigateTo} cartCount={cart.reduce((a, b) => a + (b.quantity || 1), 0)} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
       
       <main className="container main-content">
         {view === 'home' && <Home products={products} categories={categories} addToCart={addToCart} onViewDetails={handleViewDetails} />}
-        {view === 'product' && <ProductDetails product={selectedProduct} setView={setView} addToCart={addToCart} />}
-        {view === 'cart' && <Cart cart={cart} removeFromCart={removeFromCart} updateQuantity={updateQuantity} setView={setView} />}
-        {view === 'checkout' && <Checkout cart={cart} setView={setView} placeOrder={placeOrder} loggedInUser={loggedInUser} showPopup={showPopup} />}
+        {view === 'product' && <ProductDetails product={selectedProduct} navigateTo={navigateTo} addToCart={addToCart} />}
+        {view === 'cart' && <Cart cart={cart} removeFromCart={removeFromCart} updateQuantity={updateQuantity} navigateTo={navigateTo} />}
+        {view === 'checkout' && <Checkout cart={cart} navigateTo={navigateTo} placeOrder={placeOrder} loggedInUser={loggedInUser} showPopup={showPopup} />}
         {view === 'services' && <Services />}
         
         {view === 'admin' && !loggedInUser && <AuthPage users={users} setUsers={setUsers} onLogin={setLoggedInUser} showPopup={showPopup} />}
