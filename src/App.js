@@ -1,10 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { db } from './firebase';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  onSnapshot, 
+  doc, 
+  updateDoc, 
+  deleteDoc, 
+  setDoc,
+  query,
+  where
+} from "firebase/firestore";
 
 // Make sure your image file is exactly named "ZenAxis Logo.png" inside the "src" folder!
 import zaLogo from './ZenAxisLogo.png'; 
 
-// 1. Initial Mock Data
+const defaultAdminUser = {
+  id: 1, firstName: 'System', lastName: 'Admin', email: 'admin@gmail.com', phone: '01830976800', 
+  address: 'ZenAxis HQ, Dhaka', password: 'admin123', role: 'admin'
+};
+
+const formatBDT = (amount) => "৳" + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
 const initialCategories = ["Components", "Peripherals", "Monitors", "Accessories"];
 
 const initialProducts = [
@@ -26,12 +45,6 @@ const initialProducts = [
   }
 ];
 
-const defaultAdminUser = {
-  id: 1, firstName: 'System', lastName: 'Admin', email: 'admin@gmail.com', phone: '01830976800', 
-  address: 'ZenAxis HQ, Dhaka', password: 'admin123', role: 'admin'
-};
-
-const formatBDT = (amount) => "৳" + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 
 // 2. Navigation Bar
 const Navbar = ({ view, setView, cartCount, loggedInUser, setLoggedInUser, isDarkMode, setIsDarkMode }) => {
@@ -356,19 +369,29 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
+    // Use the users state which is now synced with Firestore
     const validUser = users.find(u => u.email === loginEmail && u.password === loginPass);
-    if (validUser) onLogin(validUser); else showPopup('ACCESS DENIED: Invalid email or password.');
+    if (validUser) {
+      onLogin(validUser);
+    } else {
+      showPopup('ACCESS DENIED: Invalid email or password.');
+    }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (regData.password !== regData.confirmPassword) return showPopup("Passwords do not match!");
     if (regData.password.length < 6) return showPopup('Password must be at least 6 characters.');
     if (users.find(u => u.email === regData.email)) return showPopup('An account with this email already exists!');
-    const newUser = { id: Date.now(), firstName: regData.firstName, lastName: regData.lastName, address: regData.address, phone: regData.phone, email: regData.email, password: regData.password, role: 'customer' };
-    setUsers([...users, newUser]);
-    showPopup('Account created successfully! You can now log in.');
-    setIsLoginView(true); setLoginEmail(regData.email);
+    const newUser = { firstName: regData.firstName, lastName: regData.lastName, address: regData.address, phone: regData.phone, email: regData.email, password: regData.password, role: 'customer' };
+    
+    try {
+      await addDoc(collection(db, "users"), newUser);
+      showPopup('Account created successfully! You can now log in.');
+      setIsLoginView(true); setLoginEmail(regData.email);
+    } catch (err) {
+      showPopup("Registration Error: " + err.message);
+    }
   };
 
   return (
@@ -418,12 +441,18 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
   const [editData, setEditData] = useState({ ...loggedInUser });
   const myOrders = orders.filter(o => o.customerEmail === loggedInUser.email);
 
-  const handleUpdateProfile = (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if(editData.password.length < 6) return showPopup('Password must be at least 6 characters.');
-    const updatedUsers = users.map(u => u.email === loggedInUser.email ? editData : u);
-    setUsers(updatedUsers); setLoggedInUser(editData);
-    showPopup('Profile updated successfully!');
+    
+    try {
+      const { id, ...uData } = editData;
+      await updateDoc(doc(db, "users", id), uData);
+      setLoggedInUser(editData);
+      showPopup('Profile updated successfully!');
+    } catch (err) {
+      showPopup("Profile Update Error: " + err.message);
+    }
   };
 
   return (
@@ -487,20 +516,59 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
     const defaultCat = categories.length > 0 ? categories[0] : "General";
     setEditingProduct({ id: Date.now(), name: '', category: defaultCat, price: '', description: '', longDescription: '', quickSpecs: '', technicalSpecs: '', shippingInfo: '', isHotDeal: false, isFeatured: false, images: [] });
   };
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingProduct.name || !editingProduct.price) return showPopup("Name and Price are required!");
     if (!editingProduct.images || editingProduct.images.length === 0) return showPopup("Please upload at least 1 image!");
-    setProducts(prev => {
-      const exists = prev.find(p => p.id === editingProduct.id);
-      if (exists) return prev.map(p => p.id === editingProduct.id ? editingProduct : p);
-      return [...prev, editingProduct];
-    });
-    setEditingProduct(null);
+    
+    try {
+      const { id, ...pData } = editingProduct;
+      const productToSave = { ...pData, price: Number(pData.price), originalPrice: pData.originalPrice ? Number(pData.originalPrice) : null };
+      
+      if (products.find(p => p.id === id)) {
+        await updateDoc(doc(db, "products", id), productToSave);
+      } else {
+        await addDoc(collection(db, "products"), productToSave);
+      }
+      setEditingProduct(null);
+    } catch (err) {
+      showPopup("Save Error: " + err.message);
+    }
   };
 
-  const handleDelete = (id) => { if(window.confirm("Delete this product?")) setProducts(prev => prev.filter(p => p.id !== id)); };
-  const handleAddCategory = () => { if(newCatName.trim() && !categories.includes(newCatName.trim())) { setCategories([...categories, newCatName.trim()]); setNewCatName(""); }};
-  const handleRemoveCategory = (catToRemove) => { if(window.confirm(`Delete category "${catToRemove}"?`)) setCategories(categories.filter(c => c !== catToRemove)); };
+  const handleDelete = async (id) => { 
+    if(window.confirm("Delete this product?")) {
+      try {
+        await deleteDoc(doc(db, "products", id));
+      } catch (err) {
+        showPopup("Delete Error: " + err.message);
+      }
+    }
+  };
+
+  const handleAddCategory = async () => { 
+    if(newCatName.trim() && !categories.includes(newCatName.trim())) { 
+      try {
+        await addDoc(collection(db, "categories"), { name: newCatName.trim() });
+        setNewCatName(""); 
+      } catch (err) {
+        showPopup("Add Category Error: " + err.message);
+      }
+    }
+  };
+
+  const handleRemoveCategory = async (catToRemove) => { 
+    if(window.confirm(`Delete category "${catToRemove}"?`)) {
+      try {
+        const q = query(collection(db, "categories"), where("name", "==", catToRemove));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(async (d) => {
+          await deleteDoc(doc(db, "categories", d.id));
+        });
+      } catch (err) {
+        showPopup("Delete Category Error: " + err.message);
+      }
+    }
+  };
 
   const handleMultipleImages = (e) => {
     const files = Array.from(e.target.files);
@@ -729,25 +797,63 @@ const Footer = () => (
 
 // 11. Main App Wrapper
 export default function App() {
-  const [products, setProducts] = useState(() => JSON.parse(localStorage.getItem('zen_products_v15')) || initialProducts);
-  const [categories, setCategories] = useState(() => JSON.parse(localStorage.getItem('zen_categories_v15')) || initialCategories);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('zen_cart_v15')) || []);
-  const [orders, setOrders] = useState(() => JSON.parse(localStorage.getItem('zen_orders_v15')) || []); 
-  const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem('zen_users_v15')) || [defaultAdminUser]); 
+  const [orders, setOrders] = useState([]); 
+  const [users, setUsers] = useState([]); 
   
   const [isDarkMode, setIsDarkMode] = useState(() => JSON.parse(localStorage.getItem('zen_darkmode')) || false);
   const [view, setView] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState(null); 
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [popupMsg, setPopupMsg] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const showPopup = (msg) => setPopupMsg(msg);
 
-  useEffect(() => { try { localStorage.setItem('zen_products_v15', JSON.stringify(products)); } catch (error) { console.error("Storage Error!"); } }, [products]);
-  useEffect(() => localStorage.setItem('zen_categories_v15', JSON.stringify(categories)), [categories]);
+  // REAL-TIME FIRESTORE SYNC
+  useEffect(() => {
+    const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => {
+      const pData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setProducts(pData);
+    });
+    const unsubCategories = onSnapshot(collection(db, "categories"), (snapshot) => {
+      const cData = snapshot.docs.map(doc => doc.data().name);
+      setCategories(cData);
+    });
+    const unsubOrders = onSnapshot(collection(db, "orders"), (snapshot) => {
+      const oData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setOrders(oData);
+    });
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      const uData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setUsers(uData);
+      setLoading(false);
+    });
+
+    return () => { unsubProducts(); unsubCategories(); unsubOrders(); unsubUsers(); };
+  }, []);
+
+  // INITIAL DATA SEEDING (Run once if empty)
+  useEffect(() => {
+    if (!loading && categories.length === 0) {
+      initialCategories.forEach(async (cat) => {
+        await addDoc(collection(db, "categories"), { name: cat });
+      });
+    }
+    if (!loading && users.length === 0) {
+      setDoc(doc(db, "users", "admin-default"), defaultAdminUser);
+    }
+    if (!loading && products.length === 0) {
+      initialProducts.forEach(async (p) => {
+        const { id, ...pWithoutId } = p;
+        await addDoc(collection(db, "products"), pWithoutId);
+      });
+    }
+  }, [loading]);
+
   useEffect(() => localStorage.setItem('zen_cart_v15', JSON.stringify(cart)), [cart]);
-  useEffect(() => localStorage.setItem('zen_orders_v15', JSON.stringify(orders)), [orders]);
-  useEffect(() => localStorage.setItem('zen_users_v15', JSON.stringify(users)), [users]);
   
   useEffect(() => {
     localStorage.setItem('zen_darkmode', JSON.stringify(isDarkMode));
@@ -769,25 +875,31 @@ export default function App() {
   };
   const handleViewDetails = (product) => { setSelectedProduct(product); setView('product'); window.scrollTo(0, 0); };
 
-  const placeOrder = (customerDetails, totalAmount) => {
+  const placeOrder = async (customerDetails, totalAmount) => {
     const newOrder = {
-      id: Math.floor(100000 + Math.random() * 900000),
       date: new Date().toLocaleDateString(),
       customerEmail: loggedInUser ? loggedInUser.email : 'Guest', 
       customer: customerDetails,
-      items: cart,
+      items: cart.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price })), // Clean items for DB
       total: totalAmount,
-      status: 'Pending'
+      status: 'Pending',
+      createdAt: new Date()
     };
-    setOrders([...orders, newOrder]);
-    setCart([]);
-    showPopup(`Order Placed Successfully! Your Order ID is #${newOrder.id}`);
-    setView('home');
+    try {
+      const docRef = await addDoc(collection(db, "orders"), newOrder);
+      setCart([]);
+      showPopup(`Order Placed Successfully! Your Order ID is #${docRef.id.substring(0,6).toUpperCase()}`);
+      setView('home');
+    } catch (e) {
+      showPopup("Order Error: " + e.message);
+    }
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+  const updateOrderStatus = async (orderId, newStatus) => {
+    await updateDoc(doc(db, "orders", orderId), { status: newStatus });
   };
+
+  if (loading) return <div className="empty-state"><h3>Initializing Industrial Backend...</h3></div>;
 
   return (
     <div className="App">
