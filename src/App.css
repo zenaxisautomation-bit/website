@@ -338,15 +338,57 @@ body.dark-mode .featured-badge { background: rgba(235, 210, 135, 0.1); color: va
 
   /* Cart Mobile Optimization */
   .cart-container { padding: 1.5rem 1rem !important; }
-  .cart-item { padding: 0.8rem !important; gap: 10px !important; }
-  .cart-item img { width: 60px !important; height: 60px !important; }
-  .item-details { margin-left: 0.5rem !important; }
-  .item-details h4 { font-size: 0.95rem !important; }
-  .item-price { font-size: 0.9rem !important; }
-  .item-controls { margin: 0 0.5rem !important; gap: 8px !important; }
-  .item-controls button { width: 28px !important; height: 28px !important; font-size: 1rem !important; }
-  .btn-remove { font-size: 1.1rem !important; padding: 5px !important; }
+  .cart-item { 
+    padding: 0.8rem !important; 
+    gap: 8px !important; 
+    position: relative !important; 
+    flex-wrap: wrap !important;
+  }
+  .cart-item img { width: 50px !important; height: 50px !important; border-radius: 8px !important; }
+  .item-details { margin-left: 0.2rem !important; flex: 1 !important; min-width: 120px !important; }
+  .item-details h4 { font-size: 0.85rem !important; margin-bottom: 2px !important; }
+  .item-price { font-size: 0.85rem !important; }
+  
+  .item-controls { 
+    margin: 0 !important; 
+    gap: 6px !important; 
+    order: 3 !important; 
+    width: 100% !important; 
+    justify-content: flex-start !important;
+    margin-top: 5px !important;
+    padding-left: 58px !important;
+  }
+  .item-controls button { width: 26px !important; height: 26px !important; font-size: 0.9rem !important; }
+  
+  .btn-remove { 
+    position: absolute !important; 
+    top: 5px !important; 
+    right: 5px !important; 
+    font-size: 1rem !important; 
+    padding: 4px !important; 
+    opacity: 0.8 !important;
+  }
+  
   .checkout-btn { width: 100% !important; padding: 12px !important; font-size: 0.95rem !important; }
+
+  /* Checkout Mobile Optimization */
+  .checkout-container { padding: 1.5rem 1rem !important; }
+  .checkout-layout { 
+    grid-template-columns: 1fr !important; 
+    gap: 2rem !important; 
+    margin-top: 1rem !important;
+  }
+  .checkout-summary { 
+    position: static !important; 
+    padding: 1.5rem !important; 
+    order: -1 !important; /* Show summary at top on mobile */
+  }
+  .summary-item { font-size: 0.9rem !important; padding: 8px 0 !important; }
+  .summary-total { margin-top: 1rem !important; padding-top: 0.8rem !important; }
+  
+  .payment-options { flex-direction: column !important; gap: 8px !important; }
+  .pay-card { padding: 12px !important; font-size: 0.85rem !important; }
+  .payment-instructions { padding: 1rem !important; font-size: 0.9rem !important; }
 }
 
 /* --- ANIMATIONS & UTILITY --- */
