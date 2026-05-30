@@ -284,10 +284,10 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
         <div className="shop-content">
           <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />
 
-          {/* v3 Search & Filter Row */}
-          <div className="search-filter-row">
-            <div className="search-box-wrap">
-              <svg className="search-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          {/* v3 Search & Filter Redesign */}
+          <div className="search-filter-container">
+            <div className="search-input-group">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
               <input 
@@ -297,11 +297,15 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
-            <div className="price-filter-wrap">
-              <label>Price Range (৳)</label>
-              <div className="price-inputs">
-                <input type="number" placeholder="Min" value={priceRange.min} onChange={(e) => setPriceRange({...priceRange, min: e.target.value})} />
-                <input type="number" placeholder="Max" value={priceRange.max} onChange={(e) => setPriceRange({...priceRange, max: e.target.value})} />
+            
+            <div className="filter-controls-group">
+              <div className="price-filter-item">
+                <span>৳ MIN</span>
+                <input type="number" placeholder="0" className="price-mini-input" value={priceRange.min} onChange={(e) => setPriceRange({...priceRange, min: e.target.value})} />
+              </div>
+              <div className="price-filter-item">
+                <span>৳ MAX</span>
+                <input type="number" placeholder="∞" className="price-mini-input" value={priceRange.max} onChange={(e) => setPriceRange({...priceRange, max: e.target.value})} />
               </div>
             </div>
           </div>
