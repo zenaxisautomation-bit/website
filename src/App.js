@@ -678,7 +678,7 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
 };
 
 // 9B. MASTER ADMIN PANEL
-const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCategories, orders, updateOrderStatus, users, showPopup }) => {
+const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCategories, orders, updateOrderStatus, deleteOrder, users, showPopup }) => {
   const [activeTab, setActiveTab] = useState('orders'); 
   const [editingProduct, setEditingProduct] = useState(null);
   const [newCatName, setNewCatName] = useState("");
