@@ -61,7 +61,7 @@ const initialProducts = [
 
 
 // 2. Navigation Bar
-const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, isDarkMode, setIsDarkMode }) => {
+const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, isDarkMode, setIsDarkMode, searchTerm, setSearchTerm }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navRef = React.useRef(null);
 
@@ -94,8 +94,27 @@ const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, is
 
   return (
     <header className="navbar" ref={navRef}>
-      <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
-        <img src={zaLogo} alt="ZenAxis Automation" className="nav-logo-img" />
+      <div className="nav-left">
+        <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
+          <img src={zaLogo} alt="ZenAxis Automation" className="nav-logo-img" />
+        </div>
+        
+        {/* v3.6 Navbar Search Integration */}
+        <div className="nav-search-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="nav-search-icon">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            placeholder="Search products..." 
+            className="nav-search-input"
+            value={searchTerm} 
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if(view !== 'home' && e.target.value) navigateTo('home');
+            }} 
+          />
+        </div>
       </div>
 
       <button className="hamburger-menu" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -253,10 +272,8 @@ const ProductDetails = ({ product, navigateTo, addToCart }) => {
 };
 
 // 5. Home View
-// 5. Home View
-const Home = ({ products, categories, addToCart, onViewDetails }) => {
+const Home = ({ products, categories, addToCart, onViewDetails, searchTerm, setSearchTerm }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
 
   // 1. Get filtered list from ALL products
   const filteredProducts = products.filter(p => {
@@ -281,30 +298,17 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
   return (
     <div className="home-view fade-in">
       <div className="shop-layout">
-        <aside className="sidebar">
-          <h3 className="sidebar-title">MENU CATEGORIES</h3>
-          <div className="category-list">
-            <button className={selectedCategory === 'All' ? 'active-cat' : ''} onClick={() => setSelectedCategory('All')}>All</button>
-            {categories.map(cat => <button key={cat} className={selectedCategory === cat ? 'active-cat' : ''} onClick={() => setSelectedCategory(cat)}>{cat}</button>)}
-          </div>
-        </aside>
-        <div className="shop-content">
-          <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />
-
-          {/* v3 Search Only Redesign */}
-          <div className="search-filter-container search-only">
-            <div className="search-input-group">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input 
-                type="text" 
-                placeholder="Search high-precision products..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-              />
+        {!isSearching && (
+          <aside className="sidebar">
+            <h3 className="sidebar-title">MENU CATEGORIES</h3>
+            <div className="category-list">
+              <button className={selectedCategory === 'All' ? 'active-cat' : ''} onClick={() => setSelectedCategory('All')}>All</button>
+              {categories.map(cat => <button key={cat} className={selectedCategory === cat ? 'active-cat' : ''} onClick={() => setSelectedCategory(cat)}>{cat}</button>)}
             </div>
-          </div>
+          </aside>
+        )}
+        <div className="shop-content" style={isSearching ? {width: '100%'} : {}}>
+          {!isSearching && <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />}
 
           {/* UI Section: RESULTS */}
           {isSearching ? (
@@ -317,7 +321,7 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
                   <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
                     <h3>No Matches Found</h3>
                     <p>We couldn't find any products matching "{searchTerm}".</p>
-                    <button className="btn-text" onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}>Clear Search</button>
+                    <button className="btn-text" onClick={() => setSearchTerm('')}>Clear Search</button>
                   </div>
                 )}
               </div>
@@ -1158,6 +1162,7 @@ export default function App() {
   
   const [isDarkMode, setIsDarkMode] = useState(() => JSON.parse(localStorage.getItem('zen_darkmode')) || false);
   const [view, setView] = useState('home');
+  const [searchTerm, setSearchTerm] = useState(''); // v3.6 Global Search
   const [selectedProduct, setSelectedProduct] = useState(null); 
   const [loggedInUser, setLoggedInUser] = useState(() => JSON.parse(localStorage.getItem('zen_user_v15')) || null);
   const [popupMsg, setPopupMsg] = useState('');
@@ -1296,10 +1301,10 @@ export default function App() {
 
   return (
     <div className="App">
-      <Navbar view={view} navigateTo={navigateTo} cartCount={cart.reduce((a, b) => a + (b.quantity || 1), 0)} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      <Navbar view={view} navigateTo={navigateTo} cartCount={cart.reduce((a, b) => a + (b.quantity || 1), 0)} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       
       <main className="container main-content">
-        {view === 'home' && <Home products={products} categories={categories} addToCart={addToCart} onViewDetails={handleViewDetails} />}
+        {view === 'home' && <Home products={products} categories={categories} addToCart={addToCart} onViewDetails={handleViewDetails} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
         {view === 'product' && <ProductDetails product={selectedProduct} navigateTo={navigateTo} addToCart={addToCart} />}
         {view === 'cart' && <Cart cart={cart} removeFromCart={removeFromCart} updateQuantity={updateQuantity} navigateTo={navigateTo} />}
         {view === 'checkout' && <Checkout cart={cart} navigateTo={navigateTo} placeOrder={placeOrder} loggedInUser={loggedInUser} showPopup={showPopup} />}
