@@ -379,6 +379,7 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
     division: loggedInUser ? (loggedInUser.division || '') : '',
     district: loggedInUser ? (loggedInUser.district || '') : '',
     paymentMethod: 'bKash', 
+    selectedBank: 'Islami Bank',
     trxId: ''
   });
   const total = cart.reduce((sum, item) => sum + ((item?.price || 0) * (item?.quantity || 1)), 0);
@@ -414,16 +415,16 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
             <label>Complete Street Address (Area, House, Road)</label>
             <textarea required rows="2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
             
-            <label>District</label>
-            <input type="text" list="districts" required placeholder="Type District..." value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
-            <datalist id="districts">
-              {(BD_DATA.districts[formData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
-            </datalist>
-
             <label>Division</label>
             <input type="text" list="divisions" required placeholder="Type Division..." value={formData.division} onChange={e => setFormData({...formData, division: e.target.value, district: ''})} />
             <datalist id="divisions">
               {BD_DATA.divisions.map(div => <option key={div} value={div} />)}
+            </datalist>
+
+            <label>District</label>
+            <input type="text" list="districts" required placeholder="Type District..." value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
+            <datalist id="districts">
+              {(BD_DATA.districts[formData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
             </datalist>
           </div>
           <h3 style={{marginTop: '2rem'}}>Payment Method</h3>
@@ -437,23 +438,48 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
             {formData.paymentMethod === 'bKash' && <p>Send money to bKash Merchant: <strong>01830976800</strong></p>}
             {formData.paymentMethod === 'Nagad' && <p>Send money to Nagad Merchant: <strong>01830976800</strong></p>}
             {formData.paymentMethod === 'Bank' && (
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
-                <div style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', border: '1px solid var(--glass-border)'}}>
-                  <p style={{margin: '0 0 5px 0', borderBottom: '1px solid var(--gold-main)', display: 'inline-block'}}><strong>OPTION 1: ISLAMI BANK</strong></p>
-                  <p style={{margin: '3px 0'}}>Bank: Islami Bank Bangladesh</p>
-                  <p style={{margin: '3px 0'}}>Name: Mahmud Arif</p>
-                  <p style={{margin: '3px 0'}}>AC: 20501330204977205</p>
-                  <p style={{margin: '3px 0'}}>Routing: 125500948</p>
-                  <p style={{margin: '3px 0'}}>Branch: Kushtia</p>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                <p style={{fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--gold-main)', fontWeight: '600'}}>Select your preferred bank account:</p>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                  <label style={{
+                    cursor: 'pointer', padding: '10px', borderRadius: '8px', border: `1px solid ${formData.selectedBank === 'Islami Bank' ? 'var(--gold-main)' : 'var(--glass-border)'}`,
+                    background: formData.selectedBank === 'Islami Bank' ? 'rgba(200, 155, 60, 0.1)' : 'rgba(0,0,0,0.03)',
+                    transition: '0.3s'
+                  }}>
+                    <input type="radio" name="bankSelect" value="Islami Bank" checked={formData.selectedBank === 'Islami Bank'} onChange={e => setFormData({...formData, selectedBank: e.target.value})} style={{marginRight: '8px'}} />
+                    <div style={{fontSize: '0.8rem', lineHeight: '1.4', marginTop: '5px'}}>
+                      <p style={{margin: '0 0 5px 0'}}><strong>ISLAMI BANK</strong></p>
+                      <p style={{margin: '2px 0'}}>AC: 20501330204977205</p>
+                      <p style={{margin: '2px 0'}}>Routing: 125500948</p>
+                    </div>
+                  </label>
+                  <label style={{
+                    cursor: 'pointer', padding: '10px', borderRadius: '8px', border: `1px solid ${formData.selectedBank === 'DBBL' ? 'var(--gold-main)' : 'var(--glass-border)'}`,
+                    background: formData.selectedBank === 'DBBL' ? 'rgba(200, 155, 60, 0.1)' : 'rgba(0,0,0,0.03)',
+                    transition: '0.3s'
+                  }}>
+                    <input type="radio" name="bankSelect" value="DBBL" checked={formData.selectedBank === 'DBBL'} onChange={e => setFormData({...formData, selectedBank: e.target.value})} style={{marginRight: '8px'}} />
+                    <div style={{fontSize: '0.8rem', lineHeight: '1.4', marginTop: '5px'}}>
+                      <p style={{margin: '0 0 5px 0'}}><strong>DBBL</strong></p>
+                      <p style={{margin: '2px 0'}}>AC: 1681580454661</p>
+                      <p style={{margin: '2px 0'}}>Routing: 090500949</p>
+                    </div>
+                  </label>
                 </div>
-                <div style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', border: '1px solid var(--glass-border)'}}>
-                  <p style={{margin: '0 0 5px 0', borderBottom: '1px solid var(--gold-main)', display: 'inline-block'}}><strong>OPTION 2: DBBL</strong></p>
-                  <p style={{margin: '3px 0'}}>Bank: Dutch Bangla Bank</p>
-                  <p style={{margin: '3px 0'}}>Name: Mahmud Arif</p>
-                  <p style={{margin: '3px 0'}}>AC: 1681580454661</p>
-                  <p style={{margin: '3px 0'}}>Routing: 090500949</p>
-                  <p style={{margin: '3px 0'}}>Branch: Kushtia</p>
-                </div>
+                {formData.selectedBank === 'Islami Bank' && (
+                  <div className="fade-in" style={{fontSize: '0.85rem', padding: '10px', background: 'rgba(46, 204, 113, 0.05)', borderRadius: '8px', border: '1px solid rgba(46, 204, 113, 0.2)'}}>
+                    <p><strong>Transfer to:</strong> Islami Bank Bangladesh</p>
+                    <p><strong>Name:</strong> Mahmud Arif</p>
+                    <p><strong>Branch:</strong> Kushtia</p>
+                  </div>
+                )}
+                {formData.selectedBank === 'DBBL' && (
+                  <div className="fade-in" style={{fontSize: '0.85rem', padding: '10px', background: 'rgba(46, 204, 113, 0.05)', borderRadius: '8px', border: '1px solid rgba(46, 204, 113, 0.2)'}}>
+                    <p><strong>Transfer to:</strong> Dutch Bangla Bank</p>
+                    <p><strong>Name:</strong> Mahmud Arif</p>
+                    <p><strong>Branch:</strong> Kushtia</p>
+                  </div>
+                )}
               </div>
             )}
             {formData.paymentMethod === 'COD' && <p>Pay with cash upon delivery to your address.</p>}
