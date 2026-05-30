@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/website/static/css/main.ce4a016e.css",
-    "main.js": "/website/static/js/main.3933ed4a.js",
+    "main.css": "/website/static/css/main.59916030.css",
+    "main.js": "/website/static/js/main.d84976d6.js",
     "static/js/453.46e0751d.chunk.js": "/website/static/js/453.46e0751d.chunk.js",
     "static/media/ZenAxisLogo.png": "/website/static/media/ZenAxisLogo.bed9d4a5ea69c1d419e4.png",
     "index.html": "/website/index.html",
-    "main.ce4a016e.css.map": "/website/static/css/main.ce4a016e.css.map",
-    "main.3933ed4a.js.map": "/website/static/js/main.3933ed4a.js.map",
+    "main.59916030.css.map": "/website/static/css/main.59916030.css.map",
+    "main.d84976d6.js.map": "/website/static/js/main.d84976d6.js.map",
     "453.46e0751d.chunk.js.map": "/website/static/js/453.46e0751d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ce4a016e.css",
-    "static/js/main.3933ed4a.js"
+    "static/css/main.59916030.css",
+    "static/js/main.d84976d6.js"
   ]
 }
