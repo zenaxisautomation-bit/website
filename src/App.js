@@ -104,6 +104,7 @@ const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, is
           <div className="nav-search-wrap desktop-search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="nav-search-icon">
               <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
             <input 
               type="text" 
               placeholder="Search products..." 
@@ -113,10 +114,6 @@ const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, is
                 setSearchTerm(e.target.value);
                 if(view !== 'home' && e.target.value) navigateTo('home');
               }} 
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.target.blur();
-              }}
-            />
               onKeyDown={(e) => {
                 if (e.key === 'Enter') e.target.blur();
               }}
