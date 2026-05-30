@@ -24,6 +24,20 @@ const defaultAdminUser = {
 
 const formatBDT = (amount) => "৳" + Number(amount).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 
+const BD_DATA = {
+  divisions: ["Dhaka", "Chattogram", "Barishal", "Khulna", "Rajshahi", "Rangpur", "Sylhet", "Mymensingh"],
+  districts: {
+    "Dhaka": ["Dhaka", "Faridpur", "Gazipur", "Gopalganj", "Kishoreganj", "Madaripur", "Manikganj", "Munshiganj", "Narayanganj", "Narsingdi", "Rajbari", "Shariatpur", "Tangail"],
+    "Chattogram": ["Bandarban", "Brahmanbaria", "Chandpur", "Chattogram", "Cox's Bazar", "Feni", "Khagrachhari", "Lakshmipur", "Noakhali", "Rangamati"],
+    "Barishal": ["Barguna", "Barishal", "Bhola", "Jhalokati", "Patuakhali", "Pirojpur"],
+    "Khulna": ["Bagerhat", "Chuadanga", "Jessore", "Jhenaidah", "Khulna", "Kushtia", "Magura", "Meherpur", "Narail", "Satkhira"],
+    "Rajshahi": ["Bogra", "Joypurhat", "Naogaon", "Natore", "Chapai Nawabganj", "Pabna", "Rajshahi", "Sirajganj"],
+    "Rangpur": ["Dinajpur", "Gaibandha", "Kurigram", "Lalmonirhat", "Nilphamari", "Panchagarh", "Rangpur", "Thakurgaon"],
+    "Sylhet": ["Habiganj", "Moulvibazar", "Sunamganj", "Sylhet"],
+    "Mymensingh": ["Jamalpur", "Mymensingh", "Netrokona", "Sherpur"]
+  }
+};
+
 const initialCategories = ["Components", "Peripherals", "Monitors", "Accessories"];
 
 const initialProducts = [
@@ -358,16 +372,26 @@ const Cart = ({ cart, removeFromCart, updateQuantity, navigateTo }) => {
 
 // 7. Checkout System
 const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => {
-  const [formData, setFormData] = useState({ 
-    name: loggedInUser ? `${loggedInUser.firstName} ${loggedInUser.lastName}` : '', phone: loggedInUser ? loggedInUser.phone : '', address: loggedInUser ? loggedInUser.address : '', paymentMethod: 'bKash', trxId: '' 
+  const [formData, setFormData] = useState({
+    name: loggedInUser ? `${loggedInUser.firstName} ${loggedInUser.lastName}` : '', 
+    phone: loggedInUser ? loggedInUser.phone : '', 
+    address: loggedInUser ? loggedInUser.address : '', 
+    division: loggedInUser ? (loggedInUser.division || '') : '',
+    district: loggedInUser ? (loggedInUser.district || '') : '',
+    paymentMethod: 'bKash', 
+    trxId: ''
   });
   const total = cart.reduce((sum, item) => sum + ((item?.price || 0) * (item?.quantity || 1)), 0);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if(!formData.trxId) return showPopup("Please provide the Transaction ID for verification.");
+    if(formData.paymentMethod !== 'COD' && !formData.trxId) {
+      return showPopup("Please provide the Transaction ID for verification.");
+    }
     placeOrder(formData, total);
   };
+
+  const allDistricts = Object.values(BD_DATA.districts).flat().sort();
 
   return (
     <div className="checkout-container fade-in glass-panel">
@@ -379,19 +403,49 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
           <div className="form-col">
             <label>Full Name</label><input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
             <label>Phone Number</label><input type="tel" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-            <label>Complete Delivery Address</label><textarea required rows="3" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+            
+            <label>Complete Street Address (Area, House, Road)</label>
+            <textarea required rows="2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+            
+            <label>District</label>
+            <input type="text" list="districts" required placeholder="Type District..." value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} />
+            <datalist id="districts">
+              {(BD_DATA.districts[formData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
+            </datalist>
+
+            <label>Division</label>
+            <input type="text" list="divisions" required placeholder="Type Division..." value={formData.division} onChange={e => setFormData({...formData, division: e.target.value, district: ''})} />
+            <datalist id="divisions">
+              {BD_DATA.divisions.map(div => <option key={div} value={div} />)}
+            </datalist>
           </div>
           <h3 style={{marginTop: '2rem'}}>Payment Method</h3>
           <div className="payment-options">
             <label className={`pay-card ${formData.paymentMethod === 'bKash' ? 'selected' : ''}`}><input type="radio" name="payment" value="bKash" checked={formData.paymentMethod === 'bKash'} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} />bKash</label>
             <label className={`pay-card ${formData.paymentMethod === 'Nagad' ? 'selected' : ''}`}><input type="radio" name="payment" value="Nagad" checked={formData.paymentMethod === 'Nagad'} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} />Nagad</label>
             <label className={`pay-card ${formData.paymentMethod === 'Bank' ? 'selected' : ''}`}><input type="radio" name="payment" value="Bank" checked={formData.paymentMethod === 'Bank'} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} />Bank Transfer</label>
+            <label className={`pay-card ${formData.paymentMethod === 'COD' ? 'selected' : ''}`}><input type="radio" name="payment" value="COD" checked={formData.paymentMethod === 'COD'} onChange={e => setFormData({...formData, paymentMethod: e.target.value})} />Cash on Delivery</label>
           </div>
           <div className="payment-instructions form-col">
             {formData.paymentMethod === 'bKash' && <p>Send money to bKash Merchant: <strong>01830976800</strong></p>}
             {formData.paymentMethod === 'Nagad' && <p>Send money to Nagad Merchant: <strong>01830976800</strong></p>}
-            {formData.paymentMethod === 'Bank' && <p>Transfer to: DBBL Bank, AC Name: ZenAxis, AC No: 123456789</p>}
-            <label>Transaction ID / Reference Number</label><input type="text" required value={formData.trxId} onChange={e => setFormData({...formData, trxId: e.target.value})} />
+            {formData.paymentMethod === 'Bank' && (
+              <div style={{fontSize: '0.9rem', lineHeight: '1.6'}}>
+                <p><strong>Bank:</strong> Islami Bank Bangladesh</p>
+                <p><strong>Name:</strong> Mahmud Arif</p>
+                <p><strong>AC:</strong> 20501330204977205</p>
+                <p><strong>Routing No:</strong> 125500948</p>
+                <p><strong>Branch:</strong> Kushtia</p>
+              </div>
+            )}
+            {formData.paymentMethod === 'COD' && <p>Pay with cash upon delivery to your address.</p>}
+
+            {formData.paymentMethod !== 'COD' && (
+              <>
+                <label>Transaction ID / Reference Number</label>
+                <input type="text" required value={formData.trxId} onChange={e => setFormData({...formData, trxId: e.target.value})} />
+              </>
+            )}
           </div>
           <button type="submit" className="btn-gradient btn-large">Confirm Order ({formatBDT(total)})</button>
         </form>
@@ -412,7 +466,7 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
   const [isLoginView, setIsLoginView] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
-  const [regData, setRegData] = useState({ firstName: '', lastName: '', address: '', phone: '', email: '', password: '', confirmPassword: '' });
+  const [regData, setRegData] = useState({ firstName: '', lastName: '', address: '', phone: '', email: '', password: '', confirmPassword: '', division: '', district: '' });
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -430,7 +484,17 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
     if (regData.password !== regData.confirmPassword) return showPopup("Passwords do not match!");
     if (regData.password.length < 6) return showPopup('Password must be at least 6 characters.');
     if (users.find(u => u.email === regData.email)) return showPopup('An account with this email already exists!');
-    const newUser = { firstName: regData.firstName, lastName: regData.lastName, address: regData.address, phone: regData.phone, email: regData.email, password: regData.password, role: 'customer' };
+    const newUser = { 
+      firstName: regData.firstName, 
+      lastName: regData.lastName, 
+      address: regData.address, 
+      division: regData.division,
+      district: regData.district,
+      phone: regData.phone, 
+      email: regData.email, 
+      password: regData.password, 
+      role: 'customer' 
+    };
     
     try {
       await addDoc(collection(db, "users"), newUser);
@@ -440,6 +504,8 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
       showPopup("Registration Error: " + err.message);
     }
   };
+
+  const allDistricts = Object.values(BD_DATA.districts).flat().sort();
 
   return (
     <div className="auth-page-wrapper fade-in">
@@ -464,8 +530,21 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
           <input type="email" placeholder="john@example.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} required />
           <label>Phone Number</label>
           <input type="tel" placeholder="01XXX-XXXXXX" value={regData.phone} onChange={e => setRegData({...regData, phone: e.target.value})} required />
-          <label>Delivery Address</label>
-          <textarea rows="2" placeholder="Full shipping address" value={regData.address} onChange={e => setRegData({...regData, address: e.target.value})} required />
+          
+          <label>Street Address</label>
+          <textarea rows="2" placeholder="Area, House, Road" value={regData.address} onChange={e => setRegData({...regData, address: e.target.value})} required />
+          
+          <label>District</label>
+          <input type="text" list="reg-districts" placeholder="District" value={regData.district} onChange={e => setRegData({...regData, district: e.target.value})} required />
+          <datalist id="reg-districts">
+            {(BD_DATA.districts[regData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
+          </datalist>
+
+          <label>Division</label>
+          <input type="text" list="reg-divisions" placeholder="Division" value={regData.division} onChange={e => setRegData({...regData, division: e.target.value, district: ''})} required />
+          <datalist id="reg-divisions">
+            {BD_DATA.divisions.map(div => <option key={div} value={div} />)}
+          </datalist>
           <div className="row">
             <div className="col"><label>Password</label><input type="password" placeholder="Min 6 chars" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} required /></div>
             <div className="col"><label>Confirm</label><input type="password" placeholder="Re-type" value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})} required /></div>
@@ -528,8 +607,22 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
                   <tr key={order.id}>
                     <td data-label="Order ID / Date"><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
                     <td data-label="Items">{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
-                    <td data-label="Total / Payment"><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span></td>
-                    <td data-label="Status"><strong>{order.status}</strong></td>
+                    <td data-label="Total / Payment">
+                      <strong>{formatBDT(order.total)}</strong><br/>
+                      <span className="category-tag">{order.customer.paymentMethod}</span><br/>
+                      <span style={{fontSize:'0.75rem', color:'#888'}}>{order.customer.district}, {order.customer.division}</span>
+                    </td>
+                    <td data-label="Status">
+                      <span className="category-tag" style={{
+                        background: order.status === 'Completed' ? 'rgba(46, 204, 113, 0.15)' : (order.status === 'Shipped' ? 'rgba(52, 152, 219, 0.15)' : 'rgba(241, 196, 15, 0.15)'),
+                        color: order.status === 'Completed' ? '#2ecc71' : (order.status === 'Shipped' ? '#3498db' : '#f1c40f'),
+                        borderColor: 'transparent',
+                        fontWeight: '700'
+                      }}>
+                        {order.status === 'Completed' ? '🟢 ' : (order.status === 'Shipped' ? '🔵 ' : '🟡 ')}
+                        {order.status}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -543,7 +636,20 @@ const CustomerDashboard = ({ loggedInUser, setLoggedInUser, orders, users, setUs
            <form onSubmit={handleUpdateProfile} className="form-col">
               <div className="row"><div className="col"><label>First Name</label><input type="text" value={editData.firstName} onChange={e => setEditData({...editData, firstName: e.target.value})} required /></div><div className="col"><label>Last Name</label><input type="text" value={editData.lastName} onChange={e => setEditData({...editData, lastName: e.target.value})} required /></div></div>
               <label>Phone Number</label><input type="tel" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} required />
-              <label>Delivery Address</label><textarea rows="3" value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} required />
+              
+              <label>District</label>
+              <input type="text" list="profile-districts" placeholder="District" value={editData.district || ''} onChange={e => setEditData({...editData, district: e.target.value})} required />
+              <datalist id="profile-districts">
+                {(BD_DATA.districts[editData.division] || Object.values(BD_DATA.districts).flat().sort()).map(dist => <option key={dist} value={dist} />)}
+              </datalist>
+
+              <label>Division</label>
+              <input type="text" list="profile-divisions" placeholder="Division" value={editData.division || ''} onChange={e => setEditData({...editData, division: e.target.value, district: ''})} required />
+              <datalist id="profile-divisions">
+                {BD_DATA.divisions.map(div => <option key={div} value={div} />)}
+              </datalist>
+
+              <label>Street Address</label><textarea rows="3" value={editData.address} onChange={e => setEditData({...editData, address: e.target.value})} required />
               <label>Change Password</label><input type="text" value={editData.password} onChange={e => setEditData({...editData, password: e.target.value})} required />
               <button type="submit" className="btn-gradient">Save Changes</button>
            </form>
@@ -762,7 +868,14 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
                 {[...orders].reverse().map(order => (
                   <tr key={order.id}>
                     <td data-label="Order ID / Date"><strong>#{order.id}</strong><br/><span style={{fontSize:'0.8rem', color:'#888'}}>{order.date}</span></td>
-                    <td data-label="Customer Info"><strong>{order.customer.name}</strong><br/>{order.customer.phone}<br/><span style={{fontSize:'0.8rem'}}>{order.customer.address}</span></td>
+                    <td data-label="Customer Info">
+                      <strong>{order.customer.name}</strong><br/>
+                      {order.customer.phone}<br/>
+                      <span style={{fontSize:'0.8rem'}}>
+                        {order.customer.address}<br/>
+                        {order.customer.district}, {order.customer.division}
+                      </span>
+                    </td>
                     <td data-label="Items">{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
                     <td data-label="Total / Payment"><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span><br/><span style={{fontSize:'0.8rem'}}>Trx: {order.customer.trxId}</span></td>
                     <td data-label="Status">
@@ -872,7 +985,7 @@ const Footer = () => (
           <a href="https://www.facebook.com/share/1KxFKsVsQ7/" target="_blank" rel="noopener noreferrer" title="Facebook">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
           </a>
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+          <a href="https://www.linkedin.com/company/zenaxisautomation/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
           </a>
           <a href="https://wa.me/8801830976800" target="_blank" rel="noopener noreferrer" title="WhatsApp">
@@ -1016,7 +1129,12 @@ export default function App() {
   };
 
   const updateOrderStatus = async (orderId, newStatus) => {
-    await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+    try {
+      await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+      showPopup(`Order #${orderId.substring(0,6).toUpperCase()} status updated to ${newStatus}`);
+    } catch (e) {
+      showPopup("Status Update Error: " + e.message);
+    }
   };
 
   if (loading) return <div className="empty-state"><h3>Initializing Industrial Backend...</h3></div>;
