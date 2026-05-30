@@ -402,7 +402,14 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
           <h3>Delivery Information</h3>
           <div className="form-col">
             <label>Full Name</label><input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-            <label>Phone Number</label><input type="tel" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+            <label>Phone Number</label>
+            <input 
+              type="tel" 
+              required 
+              placeholder="e.g. 01830976800"
+              value={formData.phone} 
+              onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '')})} 
+            />
             
             <label>Complete Street Address (Area, House, Road)</label>
             <textarea required rows="2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
@@ -430,12 +437,23 @@ const Checkout = ({ cart, navigateTo, placeOrder, loggedInUser, showPopup }) => 
             {formData.paymentMethod === 'bKash' && <p>Send money to bKash Merchant: <strong>01830976800</strong></p>}
             {formData.paymentMethod === 'Nagad' && <p>Send money to Nagad Merchant: <strong>01830976800</strong></p>}
             {formData.paymentMethod === 'Bank' && (
-              <div style={{fontSize: '0.9rem', lineHeight: '1.6'}}>
-                <p><strong>Bank:</strong> Islami Bank Bangladesh</p>
-                <p><strong>Name:</strong> Mahmud Arif</p>
-                <p><strong>AC:</strong> 20501330204977205</p>
-                <p><strong>Routing No:</strong> 125500948</p>
-                <p><strong>Branch:</strong> Kushtia</p>
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                <div style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', border: '1px solid var(--glass-border)'}}>
+                  <p style={{margin: '0 0 5px 0', borderBottom: '1px solid var(--gold-main)', display: 'inline-block'}}><strong>OPTION 1: ISLAMI BANK</strong></p>
+                  <p style={{margin: '3px 0'}}>Bank: Islami Bank Bangladesh</p>
+                  <p style={{margin: '3px 0'}}>Name: Mahmud Arif</p>
+                  <p style={{margin: '3px 0'}}>AC: 20501330204977205</p>
+                  <p style={{margin: '3px 0'}}>Routing: 125500948</p>
+                  <p style={{margin: '3px 0'}}>Branch: Kushtia</p>
+                </div>
+                <div style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '10px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px', border: '1px solid var(--glass-border)'}}>
+                  <p style={{margin: '0 0 5px 0', borderBottom: '1px solid var(--gold-main)', display: 'inline-block'}}><strong>OPTION 2: DBBL</strong></p>
+                  <p style={{margin: '3px 0'}}>Bank: Dutch Bangla Bank</p>
+                  <p style={{margin: '3px 0'}}>Name: Mahmud Arif</p>
+                  <p style={{margin: '3px 0'}}>AC: 1681580454661</p>
+                  <p style={{margin: '3px 0'}}>Routing: 090500949</p>
+                  <p style={{margin: '3px 0'}}>Branch: Kushtia</p>
+                </div>
               </div>
             )}
             {formData.paymentMethod === 'COD' && <p>Pay with cash upon delivery to your address.</p>}
@@ -879,11 +897,14 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
                     <td data-label="Items">{order.items.map(i => <div key={i.id} style={{fontSize:'0.85rem'}}>• {i.quantity}x {i.name}</div>)}</td>
                     <td data-label="Total / Payment"><strong>{formatBDT(order.total)}</strong><br/><span className="category-tag">{order.customer.paymentMethod}</span><br/><span style={{fontSize:'0.8rem'}}>Trx: {order.customer.trxId}</span></td>
                     <td data-label="Status">
-                      <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} className="category-dropdown" style={{padding: '5px', marginBottom: 0, width: 'auto'}}>
-                        <option value="Pending">🟡 Pending</option>
-                        <option value="Shipped">🔵 Shipped</option>
-                        <option value="Completed">🟢 Completed</option>
-                      </select>
+                      <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                        <select value={order.status} onChange={(e) => updateOrderStatus(order.id, e.target.value)} className="category-dropdown" style={{padding: '5px', marginBottom: 0, width: 'auto'}}>
+                          <option value="Pending">🟡 Pending</option>
+                          <option value="Shipped">🔵 Shipped</option>
+                          <option value="Completed">🟢 Completed</option>
+                        </select>
+                        <button className="btn-text delete" onClick={() => deleteOrder(order.id)} title="Delete Order" style={{padding: '5px', fontSize: '1.2rem', color: '#ff4757'}}>✕</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1131,9 +1152,20 @@ export default function App() {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-      showPopup(`Order #${orderId.substring(0,6).toUpperCase()} status updated to ${newStatus}`);
+      showPopup(`Order #${orderId.substring(0, 6).toUpperCase()} status updated to ${newStatus}`);
     } catch (e) {
       showPopup("Status Update Error: " + e.message);
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to PERMANENTLY DELETE this order? This action cannot be undone.")) {
+      try {
+        await deleteDoc(doc(db, "orders", orderId));
+        showPopup(`Order #${orderId.substring(0, 6).toUpperCase()} deleted.`);
+      } catch (err) {
+        showPopup("Delete Error: " + err.message);
+      }
     }
   };
 
@@ -1151,7 +1183,7 @@ export default function App() {
         {view === 'services' && <Services />}
         
         {view === 'admin' && !loggedInUser && <AuthPage users={users} setUsers={setUsers} onLogin={setLoggedInUser} showPopup={showPopup} />}
-        {view === 'admin' && loggedInUser?.role === 'admin' && <AdminPanel products={products} setProducts={setProducts} categories={categories} setCategories={setCategories} orders={orders} updateOrderStatus={updateOrderStatus} users={users} loggedInUser={loggedInUser} showPopup={showPopup} />}
+        {view === 'admin' && loggedInUser?.role === 'admin' && <AdminPanel products={products} setProducts={setProducts} categories={categories} setCategories={setCategories} orders={orders} updateOrderStatus={updateOrderStatus} deleteOrder={deleteOrder} users={users} loggedInUser={loggedInUser} showPopup={showPopup} />}
         {view === 'admin' && loggedInUser?.role === 'customer' && <CustomerDashboard loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} orders={orders} users={users} setUsers={setUsers} showPopup={showPopup} />}
       </main>
 
