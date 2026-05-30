@@ -258,10 +258,8 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
 
-  const hotDeals = products.filter(p => p.isHotDeal);
-  const regularProducts = products.filter(p => !p.isHotDeal);
-  
-  const filteredProducts = regularProducts.filter(p => {
+  // 1. Get filtered list from ALL products (don't exclude hot deals yet)
+  const filteredProducts = products.filter(p => {
     const term = searchTerm.trim().toLowerCase();
     const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
     const matchesSearch = !term || 
@@ -274,6 +272,14 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
     
     return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
   });
+
+  // 2. Decide how to display them
+  const isSearching = searchTerm.trim() !== '' || priceRange.min !== '' || priceRange.max !== '';
+  
+  // If searching/filtering, show everything in one list. 
+  // If just browsing a category, keep the "Hot Deals" separate.
+  const hotDeals = filteredProducts.filter(p => p.isHotDeal);
+  const regularProducts = filteredProducts.filter(p => !p.isHotDeal);
   
   return (
     <div className="home-view fade-in">
@@ -314,23 +320,44 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
             </div>
           </div>
 
-          {hotDeals.length > 0 && selectedCategory === 'All' && !searchTerm && (
+          {/* UI Section: RESULTS */}
+          {isSearching ? (
             <section className="section">
-              <h2 className="section-title"><span>🔥 Hot</span> Deals</h2>
-              <div className="product-grid">{hotDeals.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />)}</div>
+              <h2 className="section-title"><span>Search</span> Results ({filteredProducts.length})</h2>
+              <div className="product-grid">
+                {filteredProducts.length > 0 ? filteredProducts.map(p => (
+                  <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />
+                )) : (
+                  <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
+                    <h3>No Matches Found</h3>
+                    <p>We couldn't find any products matching "{searchTerm}".</p>
+                    <button className="btn-text" onClick={() => { setSearchTerm(''); setPriceRange({min:'', max:''}); setSelectedCategory('All'); }}>Clear All Filters</button>
+                  </div>
+                )}
+              </div>
             </section>
-          )}
-          <section className="section">
-            <h2 className="section-title"><span>{selectedCategory}</span> Products</h2>
-            <div className="product-grid">
-              {filteredProducts.length > 0 ? filteredProducts.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />) : (
-                <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
-                  <p>No products match your search or price criteria.</p>
-                  <button className="btn-text" onClick={() => { setSearchTerm(''); setPriceRange({min:'', max:''}); setSelectedCategory('All'); }}>Clear All Filters</button>
-                </div>
+          ) : (
+            <>
+              {hotDeals.length > 0 && selectedCategory === 'All' && (
+                <section className="section">
+                  <h2 className="section-title"><span>🔥 Hot</span> Deals</h2>
+                  <div className="product-grid">{hotDeals.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />)}</div>
+                </section>
               )}
-            </div>
-          </section>
+              <section className="section">
+                <h2 className="section-title"><span>{selectedCategory}</span> Products</h2>
+                <div className="product-grid">
+                  {regularProducts.length > 0 ? regularProducts.map(p => (
+                    <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />
+                  )) : (
+                    <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
+                      <p>No products found in this category.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
         </div>
       </div>
     </div>
