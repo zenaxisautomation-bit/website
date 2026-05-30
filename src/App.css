@@ -612,18 +612,21 @@ body.dark-mode .search-filter-container {
 }
 
 .price-filter-item span {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   opacity: 0.6;
   white-space: nowrap;
 }
 
 .price-mini-input {
   width: 90px !important;
-  padding: 6px 10px !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+  margin-bottom: 0 !important; /* Critical for alignment */
   border-radius: 8px !important;
   font-size: 0.85rem !important;
   text-align: center;
+  line-height: 36px !important;
 }
 
 @media (max-width: 900px) {
@@ -638,8 +641,10 @@ body.dark-mode .search-filter-container {
     padding-top: 1rem;
     border-top: 1px solid var(--glass-border);
     justify-content: space-between;
+    gap: 1rem;
   }
-  .price-mini-input { width: 100% !important; }
+  .price-filter-item { flex: 1; justify-content: space-between; }
+  .price-mini-input { width: 100px !important; flex-shrink: 0; }
 }
 
 /* --- ADMIN SLIDER MANAGEMENT --- */

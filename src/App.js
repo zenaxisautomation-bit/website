@@ -262,9 +262,13 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
   const regularProducts = products.filter(p => !p.isHotDeal);
   
   const filteredProducts = regularProducts.filter(p => {
+    const term = searchTerm.trim().toLowerCase();
     const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = !term || 
+                          p.name.toLowerCase().includes(term) || 
+                          p.description.toLowerCase().includes(term) ||
+                          (p.category || '').toLowerCase().includes(term);
+    
     const matchesMinPrice = priceRange.min === '' || p.price >= Number(priceRange.min);
     const matchesMaxPrice = priceRange.max === '' || p.price <= Number(priceRange.max);
     
