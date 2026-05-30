@@ -235,6 +235,16 @@ const ProductDetails = ({ product, navigateTo, addToCart }) => {
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
 
   if (!product) return null;
+
+  // v3.10 YouTube ID Extraction Utility
+  const getYouTubeID = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+  const videoId = getYouTubeID(product.videoUrl);
+
   const renderQuickSpecs = () => {
     if (!product.quickSpecs) return <li>✓ Standard Industrial Build</li>;
     return product.quickSpecs.split('\n').map((spec, index) => spec.trim() ? <li key={index}>✓ {spec}</li> : null);
@@ -293,6 +303,22 @@ const ProductDetails = ({ product, navigateTo, addToCart }) => {
           {activeTab === 'shipping' && <div className="fade-in"><h3>Shipping Information</h3><p style={{ whiteSpace: 'pre-wrap' }}>{product.shippingInfo || "Standard shipping rates apply."}</p></div>}
         </div>
       </div>
+
+      {/* v3.10 Product Video Section */}
+      {videoId && (
+        <div className="product-video-section glass-panel fade-in">
+          <h3 className="admin-section-title" style={{textAlign: 'center', marginBottom: '2rem'}}>Product Demonstration</h3>
+          <div className="video-wrapper">
+            <iframe 
+              src={`https://www.youtube.com/embed/${videoId}`} 
+              title="Product Video" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -957,6 +983,14 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
             </div>
 
             {/* Section 6: Options & Settings Card */}
+            <div className="form-card">
+              <h3 className="form-card-title">Product Video</h3>
+              <label>YouTube Video URL</label>
+              <input type="text" value={editingProduct.videoUrl || ''} onChange={e => setEditingProduct({...editingProduct, videoUrl: e.target.value})} placeholder="e.g. https://www.youtube.com/watch?v=..." />
+              <p className="sub-text" style={{fontSize: '0.75rem', marginTop: '5px'}}>Add a product demonstration video from YouTube.</p>
+            </div>
+
+            {/* Section 7: Options & Settings Card */}
             <div className="form-card">
               <h3 className="form-card-title">Display Settings</h3>
               <div style={{display:'flex', flexDirection:'column', gap: '1rem', marginTop: '1rem'}}>
