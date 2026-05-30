@@ -255,9 +255,21 @@ const ProductDetails = ({ product, navigateTo, addToCart }) => {
 // 5. Home View
 const Home = ({ products, categories, addToCart, onViewDetails }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+
   const hotDeals = products.filter(p => p.isHotDeal);
   const regularProducts = products.filter(p => !p.isHotDeal);
-  const displayedProducts = selectedCategory === 'All' ? regularProducts : regularProducts.filter(p => (p.category || 'General') === selectedCategory);
+  
+  const filteredProducts = regularProducts.filter(p => {
+    const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMinPrice = priceRange.min === '' || p.price >= Number(priceRange.min);
+    const matchesMaxPrice = priceRange.max === '' || p.price <= Number(priceRange.max);
+    
+    return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
+  });
   
   return (
     <div className="home-view fade-in">
@@ -271,7 +283,30 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
         </aside>
         <div className="shop-content">
           <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />
-          {hotDeals.length > 0 && selectedCategory === 'All' && (
+
+          {/* v3 Search & Filter Row */}
+          <div className="search-filter-row">
+            <div className="search-box-wrap">
+              <svg className="search-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input 
+                type="text" 
+                placeholder="Search high-precision products..." 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+              />
+            </div>
+            <div className="price-filter-wrap">
+              <label>Price Range (৳)</label>
+              <div className="price-inputs">
+                <input type="number" placeholder="Min" value={priceRange.min} onChange={(e) => setPriceRange({...priceRange, min: e.target.value})} />
+                <input type="number" placeholder="Max" value={priceRange.max} onChange={(e) => setPriceRange({...priceRange, max: e.target.value})} />
+              </div>
+            </div>
+          </div>
+
+          {hotDeals.length > 0 && selectedCategory === 'All' && !searchTerm && (
             <section className="section">
               <h2 className="section-title"><span>🔥 Hot</span> Deals</h2>
               <div className="product-grid">{hotDeals.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />)}</div>
@@ -280,7 +315,12 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
           <section className="section">
             <h2 className="section-title"><span>{selectedCategory}</span> Products</h2>
             <div className="product-grid">
-              {displayedProducts.length > 0 ? displayedProducts.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />) : <div className="empty-state glass-panel">No products found in this category.</div>}
+              {filteredProducts.length > 0 ? filteredProducts.map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} onViewDetails={onViewDetails} />) : (
+                <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
+                  <p>No products match your search or price criteria.</p>
+                  <button className="btn-text" onClick={() => { setSearchTerm(''); setPriceRange({min:'', max:''}); setSelectedCategory('All'); }}>Clear All Filters</button>
+                </div>
+              )}
             </div>
           </section>
         </div>
@@ -578,16 +618,16 @@ const AuthPage = ({ users, setUsers, onLogin, showPopup }) => {
           <label>Street Address</label>
           <textarea rows="2" placeholder="Area, House, Road" value={regData.address} onChange={e => setRegData({...regData, address: e.target.value})} required />
           
-          <label>District</label>
-          <input type="text" list="reg-districts" placeholder="District" value={regData.district} onChange={e => setRegData({...regData, district: e.target.value})} required />
-          <datalist id="reg-districts">
-            {(BD_DATA.districts[regData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
-          </datalist>
-
           <label>Division</label>
           <input type="text" list="reg-divisions" placeholder="Division" value={regData.division} onChange={e => setRegData({...regData, division: e.target.value, district: ''})} required />
           <datalist id="reg-divisions">
             {BD_DATA.divisions.map(div => <option key={div} value={div} />)}
+          </datalist>
+
+          <label>District</label>
+          <input type="text" list="reg-districts" placeholder="District" value={regData.district} onChange={e => setRegData({...regData, district: e.target.value})} required />
+          <datalist id="reg-districts">
+            {(BD_DATA.districts[regData.division] || allDistricts).map(dist => <option key={dist} value={dist} />)}
           </datalist>
           <div className="row">
             <div className="col"><label>Password</label><input type="password" placeholder="Min 6 chars" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} required /></div>
@@ -897,10 +937,46 @@ const AdminPanel = ({ products, setProducts, loggedInUser, categories, setCatego
         <div className="admin-nav-tabs">
           <button className={activeTab === 'orders' ? 'tab-active' : ''} onClick={() => setActiveTab('orders')}>Orders</button>
           <button className={activeTab === 'products' ? 'tab-active' : ''} onClick={() => setActiveTab('products')}>Products</button>
+          <button className={activeTab === 'slider' ? 'tab-active' : ''} onClick={() => setActiveTab('slider')}>Hero Slider</button>
           <button className={activeTab === 'categories' ? 'tab-active' : ''} onClick={() => setActiveTab('categories')}>Categories</button>
           <button className={activeTab === 'users' ? 'tab-active' : ''} onClick={() => setActiveTab('users')}>Users</button>
         </div>
       </div>
+
+      {activeTab === 'slider' && (
+        <div className="glass-panel fade-in" style={{padding: '1.5rem'}}>
+          <h3 className="admin-section-title">Manage Hero Slider</h3>
+          <p className="sub-text">Select products to feature in the landing page slider (Recommended: 3-5 items).</p>
+          <div className="slider-management-list">
+            {products.map(p => (
+              <div key={p.id} className="slider-admin-card">
+                <img src={p.images?.[0]} alt={p.name} />
+                <div className="slider-info">
+                  <h4>{p.name}</h4>
+                  <p>{p.category} | {formatBDT(p.price)}</p>
+                </div>
+                <div className="slider-action">
+                  <label className="checkbox-label" style={{marginBottom: 0}}>
+                    <input 
+                      type="checkbox" 
+                      checked={p.isFeatured} 
+                      onChange={async (e) => {
+                        try {
+                          await updateDoc(doc(db, "products", p.id), { isFeatured: e.target.checked });
+                          showPopup(`${p.name} ${e.target.checked ? 'added to' : 'removed from'} slider.`);
+                        } catch (err) {
+                          showPopup("Slider Update Error: " + err.message);
+                        }
+                      }} 
+                    /> 
+                    {p.isFeatured ? '🌟 Featured' : 'Show in Slider'}
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {activeTab === 'orders' && (
         <div className="glass-panel table-responsive fade-in">
