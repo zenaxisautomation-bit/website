@@ -94,60 +94,80 @@ const Navbar = ({ view, navigateTo, cartCount, loggedInUser, setLoggedInUser, is
 
   return (
     <header className="navbar" ref={navRef}>
-      <div className="nav-left">
-        <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
-          <img src={zaLogo} alt="ZenAxis Automation" className="nav-logo-img" />
+      <div className="nav-main-row">
+        <div className="nav-left-group">
+          <div className="logo" onClick={() => handleNavClick('home')} style={{cursor: 'pointer'}}>
+            <img src={zaLogo} alt="ZenAxis Automation" className="nav-logo-img" />
+          </div>
+          
+          {/* Desktop Search */}
+          <div className="nav-search-wrap desktop-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="nav-search-icon">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              className="nav-search-input"
+              value={searchTerm} 
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                if(view !== 'home' && e.target.value) navigateTo('home');
+              }} 
+            />
+          </div>
         </div>
-        
-        {/* v3.6 Navbar Search Integration */}
-        <div className="nav-search-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="nav-search-icon">
-            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+
+        <button className="hamburger-menu" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
-          <input 
-            type="text" 
-            placeholder="Search products..." 
-            className="nav-search-input"
-            value={searchTerm} 
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if(view !== 'home' && e.target.value) navigateTo('home');
-            }} 
-          />
-        </div>
+        </button>
+
+        <nav className={isMobileMenuOpen ? "nav-links open" : "nav-links"}>
+          <button className={view === 'home' || view === 'product' ? 'active' : ''} onClick={() => handleNavClick('home')}>Home</button>
+          <button className={view === 'services' ? 'active' : ''} onClick={() => handleNavClick('services')}>Services</button>
+          <button className={view === 'cart' || view === 'checkout' ? 'active' : ''} onClick={() => handleNavClick('cart')}>
+            Cart <span className="cart-badge">{cartCount}</span>
+          </button>
+          <button className={view === 'admin' ? 'active' : ''} onClick={() => handleNavClick('admin')}>
+            {!loggedInUser ? 'Log In' : (loggedInUser.role === 'admin' ? 'Admin Panel' : 'My Account')}
+          </button>
+          {loggedInUser && view === 'admin' && (
+            <button onClick={handleLogout} style={{color: '#ff4757'}}>Logout</button>
+          )}
+          <button className="theme-toggle-icon" onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} title="Toggle Theme">
+            {isDarkMode ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            )}
+          </button>
+        </nav>
       </div>
 
-      <button className="hamburger-menu" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
+      {/* Mobile Search - Visible only on small screens */}
+      <div className="nav-search-wrap mobile-search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="nav-search-icon">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-      </button>
-
-      <nav className={isMobileMenuOpen ? "nav-links open" : "nav-links"}>
-        <button className={view === 'home' || view === 'product' ? 'active' : ''} onClick={() => handleNavClick('home')}>Home</button>
-        <button className={view === 'services' ? 'active' : ''} onClick={() => handleNavClick('services')}>Services</button>
-        <button className={view === 'cart' || view === 'checkout' ? 'active' : ''} onClick={() => handleNavClick('cart')}>
-          Cart <span className="cart-badge">{cartCount}</span>
-        </button>
-        <button className={view === 'admin' ? 'active' : ''} onClick={() => handleNavClick('admin')}>
-          {!loggedInUser ? 'Log In' : (loggedInUser.role === 'admin' ? 'Admin Panel' : 'My Account')}
-        </button>
-        {loggedInUser && view === 'admin' && (
-          <button onClick={handleLogout} style={{color: '#ff4757'}}>Logout</button>
-        )}
-        <button className="theme-toggle-icon" onClick={() => { setIsDarkMode(!isDarkMode); setIsMobileMenuOpen(false); }} title="Toggle Theme">
-          {isDarkMode ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-          )}
-        </button>
-      </nav>
+        <input 
+          type="text" 
+          placeholder="Search products..." 
+          className="nav-search-input"
+          value={searchTerm} 
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if(view !== 'home' && e.target.value) navigateTo('home');
+          }} 
+        />
+      </div>
     </header>
   );
 };
+
 
 
 // 3. Hero & Product Cards
