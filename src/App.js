@@ -253,12 +253,12 @@ const ProductDetails = ({ product, navigateTo, addToCart }) => {
 };
 
 // 5. Home View
+// 5. Home View
 const Home = ({ products, categories, addToCart, onViewDetails }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
 
-  // 1. Get filtered list from ALL products (don't exclude hot deals yet)
+  // 1. Get filtered list from ALL products
   const filteredProducts = products.filter(p => {
     const term = searchTerm.trim().toLowerCase();
     const matchesCategory = selectedCategory === 'All' || (p.category || 'General') === selectedCategory;
@@ -267,16 +267,13 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
                           p.description.toLowerCase().includes(term) ||
                           (p.category || '').toLowerCase().includes(term);
     
-    const matchesMinPrice = priceRange.min === '' || p.price >= Number(priceRange.min);
-    const matchesMaxPrice = priceRange.max === '' || p.price <= Number(priceRange.max);
-    
-    return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
+    return matchesCategory && matchesSearch;
   });
 
   // 2. Decide how to display them
-  const isSearching = searchTerm.trim() !== '' || priceRange.min !== '' || priceRange.max !== '';
+  const isSearching = searchTerm.trim() !== '';
   
-  // If searching/filtering, show everything in one list. 
+  // If searching, show everything in one list. 
   // If just browsing a category, keep the "Hot Deals" separate.
   const hotDeals = filteredProducts.filter(p => p.isHotDeal);
   const regularProducts = filteredProducts.filter(p => !p.isHotDeal);
@@ -294,8 +291,8 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
         <div className="shop-content">
           <HeroSlider products={products} addToCart={addToCart} onViewDetails={onViewDetails} />
 
-          {/* v3 Search & Filter Redesign */}
-          <div className="search-filter-container">
+          {/* v3 Search Only Redesign */}
+          <div className="search-filter-container search-only">
             <div className="search-input-group">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -306,17 +303,6 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
-            </div>
-            
-            <div className="filter-controls-group">
-              <div className="price-filter-item">
-                <span>৳ MIN</span>
-                <input type="number" placeholder="0" className="price-mini-input" value={priceRange.min} onChange={(e) => setPriceRange({...priceRange, min: e.target.value})} />
-              </div>
-              <div className="price-filter-item">
-                <span>৳ MAX</span>
-                <input type="number" placeholder="∞" className="price-mini-input" value={priceRange.max} onChange={(e) => setPriceRange({...priceRange, max: e.target.value})} />
-              </div>
             </div>
           </div>
 
@@ -331,7 +317,7 @@ const Home = ({ products, categories, addToCart, onViewDetails }) => {
                   <div className="empty-state glass-panel" style={{gridColumn: '1 / -1'}}>
                     <h3>No Matches Found</h3>
                     <p>We couldn't find any products matching "{searchTerm}".</p>
-                    <button className="btn-text" onClick={() => { setSearchTerm(''); setPriceRange({min:'', max:''}); setSelectedCategory('All'); }}>Clear All Filters</button>
+                    <button className="btn-text" onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}>Clear Search</button>
                   </div>
                 )}
               </div>
